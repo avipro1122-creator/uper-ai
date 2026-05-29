@@ -1,0 +1,104 @@
+/* UperAI · Global Styles · app/globals.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── BASE RESETS ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #0A0A0A;
+  color: #E8E8E4;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── TYPOGRAPHY ── */
+.font-terminal { font-family: 'JetBrains Mono', monospace; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0A0A0A; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* ── FOCUS RING ── */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 212, 160, 0.4);
+}
+
+/* ── SELECTION ── */
+::selection {
+  background: rgba(0, 212, 160, 0.2);
+  color: #E8E8E4;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1);   }
+}
+
+.animate-marquee { animation: marquee 30s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
+
+.animate-fade-in { animation: fadeIn 0.35s ease-out forwards; }
+
+/* ── SEARCH INPUT GLOW ── */
+.search-glow:focus {
+  border-color: rgba(0, 212, 160, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(0, 212, 160, 0.06),
+              0 0 24px rgba(0, 212, 160, 0.04);
+}
+
+/* ── SIGNAL TAGS ── */
+.tag-bull {
+  background: rgba(0, 212, 160, 0.12);
+  color: #00D4A0;
+  border: 1px solid rgba(0, 212, 160, 0.2);
+}
+.tag-bear {
+  background: rgba(255, 77, 77, 0.12);
+  color: #FF4D4D;
+  border: 1px solid rgba(255, 77, 77, 0.2);
+}
+.tag-neu {
+  background: rgba(245, 166, 35, 0.12);
+  color: #F5A623;
+  border: 1px solid rgba(245, 166, 35, 0.2);
+}
+
+/* ── METRIC COLORS ── */
+.text-pos { color: #00D4A0; }
+.text-neg { color: #FF4D4D; }
+.text-warn { color: #F5A623; }
+.text-muted { color: #888882; }
+
+/* ── CARD HOVER ── */
+.card-hover {
+  transition: border-color 0.2s ease;
+}
+.card-hover:hover {
+  border-color: #2a2a2a;
+}
