@@ -1,27 +1,3 @@
-# Dependencies
-node_modules/
-/.pnp
-.pnp.js
-
-# Testing
-/coverage
-
-# Production / Builds
-dist/
-dist-ssr/
-build/
-out/
-.vercel
-
-# Environment Variables & Secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*
-!.env.example
-
 # Logs
 logs
 *.log
@@ -31,16 +7,24 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Editor / IDE Configs
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea/
+.idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.env
+.env*.local
 
-# OS / System Files
-.DS_Store
-Thumbs.db
+
+.vercel
+.env*
