@@ -39,9 +39,9 @@ echo.
 echo [INFO] Preparing branch...
 %GIT_PATH% branch -M main
 
-echo [INFO] Linking to GitHub repository: https://github.com/%GH_USER%/UperAI.git...
+echo [INFO] Linking to GitHub repository: https://github.com/%GH_USER%/uper-ai.git...
 %GIT_PATH% remote remove origin >nul 2>nul
-%GIT_PATH% remote add origin https://github.com/%GH_USER%/UperAI.git
+%GIT_PATH% remote add origin https://github.com/%GH_USER%/uper-ai.git
 
 echo.
 echo ====================================================

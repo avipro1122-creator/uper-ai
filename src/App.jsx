@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { MessageSquare, Cpu, LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageSquare, Cpu, LogOut, ShieldCheck, ShieldAlert } from 'lucide-react';
 import ChatInterface from './components/ChatInterface';
 import SLMVision from './components/SLMVision';
 import Auth from './components/Auth';
+import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 
 // Inline GitHub SVG component
@@ -25,23 +26,128 @@ const GithubIcon = ({ size = 16, ...props }) => (
 );
 
 function App() {
-  const [activeView, setActiveView] = useState('chat'); // 'chat' or 'roadmap'
-  const [user, setUser] = useState(() => {
-    try {
-      const u = localStorage.getItem('uperai_user');
-      return u ? JSON.parse(u) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [activeView, setActiveView] = useState('chat'); // 'chat', 'roadmap', 'admin', 'forbidden'
+  const [user, setUser] = useState(null);
+  const [loadingSession, setLoadingSession] = useState(true);
 
-  const handleLogout = () => {
-    localStorage.removeItem('uperai_user');
-    setUser(null);
+  // Sync state with URL path
+  const syncViewWithURL = (currentUser) => {
+    const path = window.location.pathname;
+    if (path.startsWith('/admin')) {
+      if (currentUser) {
+        if (currentUser.role === 'ADMIN') {
+          setActiveView('admin');
+        } else {
+          setActiveView('forbidden');
+        }
+      } else {
+        // Fallback to chat or let auth load
+        setActiveView('chat');
+      }
+    } else if (path === '/roadmap') {
+      setActiveView('roadmap');
+    } else {
+      setActiveView('chat');
+    }
   };
 
+  // Check user session on mount
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (res.ok && data.authenticated) {
+          setUser(data.user);
+          syncViewWithURL(data.user);
+        } else {
+          setUser(null);
+          // If accessing admin, force login view
+          if (window.location.pathname.startsWith('/admin')) {
+            window.history.pushState({}, '', '/');
+          }
+        }
+      } catch (err) {
+        console.error("Session verification failed:", err);
+      } finally {
+        setLoadingSession(false);
+      }
+    };
+    verifySession();
+  }, []);
+
+  // Listen to popstate for back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      syncViewWithURL(user);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
+  const navigate = (viewName, path) => {
+    window.history.pushState({}, '', path);
+    setActiveView(viewName);
+  };
+
+  const handleLoginSuccess = (loggedInUser) => {
+    setUser(loggedInUser);
+    syncViewWithURL(loggedInUser);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error("Logout request failed:", e);
+    }
+    setUser(null);
+    navigate('chat', '/');
+  };
+
+  // Loading Splash Screen
+  if (loadingSession) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#050505', color: '#fff' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="admin-spinner" style={{ margin: '0 auto 20px auto' }}></div>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Initializing secure session...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not Logged In -> Show Auth screen
   if (!user) {
-    return <Auth onLoginSuccess={setUser} />;
+    return <Auth onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // 403 Forbidden Screen
+  if (activeView === 'forbidden') {
+    return (
+      <div className="forbidden-container">
+        <div className="forbidden-icon-glow">
+          <ShieldAlert size={64} />
+        </div>
+        <h1 className="forbidden-title">403 - Access Denied</h1>
+        <p className="forbidden-desc">
+          Your account (<strong>{user.email}</strong>) does not have Administrator privileges. 
+          All administrative requests are strictly audited.
+        </p>
+        <button className="btn-primary" onClick={() => navigate('chat', '/')}>
+          Return to Research Terminal
+        </button>
+      </div>
+    );
+  }
+
+  // Full-page Admin Dashboard (isolated layout to prevent double sidebar issues)
+  if (activeView === 'admin') {
+    return (
+      <AdminDashboard user={user} onBackToTerminal={() => navigate('chat', '/')} />
+    );
   }
 
   return (
@@ -61,7 +167,7 @@ function App() {
           
           <button 
             className={`nav-item ${activeView === 'chat' ? 'active' : ''}`}
-            onClick={() => setActiveView('chat')}
+            onClick={() => navigate('chat', '/')}
           >
             <MessageSquare size={16} />
             <span>Research Terminal</span>
@@ -69,21 +175,38 @@ function App() {
 
           <button 
             className={`nav-item ${activeView === 'roadmap' ? 'active' : ''}`}
-            onClick={() => setActiveView('roadmap')}
+            onClick={() => navigate('roadmap', '/roadmap')}
           >
             <Cpu size={16} />
             <span>Uper SLM Vision</span>
           </button>
+
+          {user.role === 'ADMIN' && (
+            <>
+              <span className="nav-section-title" style={{ marginTop: '16px' }}>Administration</span>
+              <button 
+                className={`nav-item ${activeView === 'admin' ? 'active' : ''}`}
+                onClick={() => navigate('admin', '/admin')}
+                style={{ border: '1px solid rgba(0, 229, 196, 0.15)', background: 'rgba(0, 229, 196, 0.02)' }}
+              >
+                <ShieldCheck size={16} style={{ color: '#00E5C4' }} />
+                <span>Admin Dashboard</span>
+              </button>
+            </>
+          )}
         </nav>
 
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* User Profile Card */}
             <div className="sidebar-profile-card">
-              <img src={user.avatar} alt={user.name} className="profile-avatar" />
+              <img src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} alt={user.name} className="profile-avatar" />
               <div className="profile-details">
                 <span className="profile-name">{user.name}</span>
                 <span className="profile-email">{user.email}</span>
+                {user.role === 'ADMIN' && (
+                  <span className="role-badge admin" style={{ fontSize: '9px', padding: '1px 4px', marginTop: '2px', display: 'inline-block', width: 'fit-content' }}>Admin</span>
+                )}
               </div>
             </div>
 
@@ -132,7 +255,7 @@ function App() {
               <span>NSE/BSE Engine</span>
             </div>
             <div style={{ height: '12px', width: '1px', background: 'var(--border-subtle)' }} />
-            <img src={user.avatar} alt={user.name} className="nav-user-avatar" title={user.name} />
+            <img src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} alt={user.name} className="nav-user-avatar" title={user.name} />
           </div>
         </div>
 
