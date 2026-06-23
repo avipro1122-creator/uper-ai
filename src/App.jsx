@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Cpu, LogOut, User, LogIn } from 'lucide-react';
+import { MessageSquare, Cpu, LogOut } from 'lucide-react';
 import ChatInterface from './components/ChatInterface';
 import SLMVision from './components/SLMVision';
 import Auth from './components/Auth';
@@ -26,7 +26,6 @@ const GithubIcon = ({ size = 16, ...props }) => (
 
 function App() {
   const [activeView, setActiveView] = useState('chat'); // 'chat' or 'roadmap'
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState(() => {
     try {
       const u = localStorage.getItem('uperai_user');
@@ -40,6 +39,10 @@ function App() {
     localStorage.removeItem('uperai_user');
     setUser(null);
   };
+
+  if (!user) {
+    return <Auth onLoginSuccess={setUser} />;
+  }
 
   return (
     <div className="app-container theme-slm">
@@ -76,37 +79,18 @@ function App() {
         <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* User Profile Card */}
-            {user ? (
-              <div className="sidebar-profile-card">
-                <img src={user.avatar} alt={user.name} className="profile-avatar" />
-                <div className="profile-details">
-                  <span className="profile-name">{user.name}</span>
-                  <span className="profile-email">{user.email}</span>
-                </div>
+            <div className="sidebar-profile-card">
+              <img src={user.avatar} alt={user.name} className="profile-avatar" />
+              <div className="profile-details">
+                <span className="profile-name">{user.name}</span>
+                <span className="profile-email">{user.email}</span>
               </div>
-            ) : (
-              <div className="sidebar-profile-card guest-profile" onClick={() => setShowAuthModal(true)} style={{ cursor: 'pointer' }}>
-                <div className="profile-avatar guest-avatar-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 255, 255, 0.05)', border: '1px dashed rgba(255, 255, 255, 0.2)' }}>
-                  <User size={16} style={{ color: 'var(--text-muted)' }} />
-                </div>
-                <div className="profile-details">
-                  <span className="profile-name">Guest Workspace</span>
-                  <span className="profile-email" style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Sign in for research</span>
-                </div>
-              </div>
-            )}
+            </div>
 
-            {user ? (
-              <button onClick={handleLogout} className="logout-btn">
-                <LogOut size={14} />
-                <span>Log Out</span>
-              </button>
-            ) : (
-              <button onClick={() => setShowAuthModal(true)} className="logout-btn login-btn-sidebar" style={{ border: '1px solid rgba(0, 229, 196, 0.3)', color: 'var(--accent-color)' }}>
-                <LogIn size={14} />
-                <span>Sign In / Register</span>
-              </button>
-            )}
+            <button onClick={handleLogout} className="logout-btn">
+              <LogOut size={14} />
+              <span>Log Out</span>
+            </button>
 
             <a 
               href="https://github.com" 
@@ -148,13 +132,7 @@ function App() {
               <span>NSE/BSE Engine</span>
             </div>
             <div style={{ height: '12px', width: '1px', background: 'var(--border-subtle)' }} />
-            {user ? (
-              <img src={user.avatar} alt={user.name} className="nav-user-avatar" title={user.name} />
-            ) : (
-              <button className="nav-signin-header-btn" onClick={() => setShowAuthModal(true)}>
-                <span>Sign In</span>
-              </button>
-            )}
+            <img src={user.avatar} alt={user.name} className="nav-user-avatar" title={user.name} />
           </div>
         </div>
 
@@ -167,22 +145,6 @@ function App() {
           )}
         </div>
       </main>
-
-      {/* Auth Modal Overlay */}
-      {showAuthModal && (
-        <div className="auth-modal-overlay" onClick={() => setShowAuthModal(false)}>
-          <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
-            <Auth 
-              onLoginSuccess={(userData) => {
-                setUser(userData);
-                setShowAuthModal(false);
-              }} 
-              onClose={() => setShowAuthModal(false)}
-              isModal={true}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
