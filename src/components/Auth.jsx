@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, User, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Lock, Mail, User, ShieldAlert, ArrowRight, X } from 'lucide-react';
 
 // Predefined mock Google accounts for simulated login
 const MOCK_GOOGLE_ACCOUNTS = [
@@ -15,7 +15,7 @@ const MOCK_GOOGLE_ACCOUNTS = [
   }
 ];
 
-export default function Auth({ onLoginSuccess }) {
+export default function Auth({ onLoginSuccess, onClose, isModal = false }) {
   const [activeTab, setActiveTab] = useState('signin'); // 'signin' or 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -140,12 +140,19 @@ export default function Auth({ onLoginSuccess }) {
   };
 
   return (
-    <div className="auth-screen">
+    <div className={`auth-screen ${isModal ? 'modal-view' : ''}`}>
       {/* Background glowing decorations */}
       <div className="auth-glow auth-glow-1"></div>
       <div className="auth-glow auth-glow-2"></div>
 
-      <div className="auth-card-container">
+      <div className="auth-card-container" style={{ position: 'relative' }}>
+        {/* Close button for modal */}
+        {isModal && (
+          <button className="auth-close-btn" onClick={onClose} aria-label="Close modal">
+            <X size={20} />
+          </button>
+        )}
+
         {/* Logo Banner */}
         <div className="auth-brand-logo">
           <div className="auth-logo-icon">U</div>
@@ -291,6 +298,11 @@ export default function Auth({ onLoginSuccess }) {
         </div>
 
         <div className="auth-footer-notes">
+          {isModal && (
+            <button type="button" className="auth-guest-link" onClick={onClose}>
+              Continue as Guest
+            </button>
+          )}
           Use email <code>dev@uper.ai</code> & password <code>admin</code> to bypass or register a local sandboxed credential.
         </div>
       </div>
