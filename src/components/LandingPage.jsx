@@ -20,18 +20,10 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
   const [sensex, setSensex] = useState({ value: 77215.40, change: 292.10, changePct: 0.38, tickDir: '' });
   const [lastUpdated, setLastUpdated] = useState('');
 
-  // Tokenizer Sandbox state
-  const [inputText, setInputText] = useState(
-    "Reliance announced ₹15,400 Crore capex for green hydrogen and 45 Lakh subscriber ads in Q4 FY25."
-  );
-  const [tokens, setTokens] = useState([]);
-  const [isTokenized, setIsTokenized] = useState(false);
-
   // Refs for smooth scroll
   const featuresRef = useRef(null);
   const statsRef = useRef(null);
   const whyRef = useRef(null);
-  const roadmapRef = useRef(null);
 
   const scrollToSection = (elementRef) => {
     setMobileMenuOpen(false);
@@ -145,88 +137,12 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
     }
   }, [sensex.value]);
 
-  // Handle local tokenization demo
-  const handleTokenize = () => {
-    const words = inputText.split(/(\s+)/);
-    const parsedTokens = [];
-    
-    for (let i = 0; i < words.length; i++) {
-      const part = words[i];
-      if (part.trim() === "") continue;
-      
-      let type = "word";
-      let subtext = "Token";
-      let colorClass = "rgba(255,255,255,0.05)";
-      let textColor = "var(--text-secondary)";
-      
-      if (
-        part.includes("₹") || 
-        part.toLowerCase().includes("crore") || 
-        part.toLowerCase().includes("lakh") ||
-        (i > 0 && words[i - 2] && (words[i].toLowerCase() === "crore" || words[i].toLowerCase() === "lakh"))
-      ) {
-        type = "currency";
-        subtext = "IN Financial Num";
-        colorClass = "rgba(16, 185, 129, 0.15)";
-        textColor = "#10b981";
-      } else if (
-        part.toLowerCase() === "reliance" || 
-        part.toLowerCase() === "ril" || 
-        part.toLowerCase() === "tata" || 
-        part.toLowerCase() === "hdfc"
-      ) {
-        type = "ticker";
-        subtext = "Equity Ticker";
-        colorClass = "rgba(56, 189, 248, 0.15)";
-        textColor = "#38bdf8";
-      } else if (
-        part.toUpperCase().includes("Q1") || 
-        part.toUpperCase().includes("Q2") || 
-        part.toUpperCase().includes("Q3") || 
-        part.toUpperCase().includes("Q4") || 
-        part.toUpperCase().includes("FY")
-      ) {
-        type = "fiscal";
-        subtext = "Fiscal Period";
-        colorClass = "rgba(167, 139, 250, 0.15)";
-        textColor = "#c084fc";
-      } else if (
-        part.toLowerCase() === "capex" || 
-        part.toLowerCase() === "ebitda" || 
-        part.toLowerCase() === "pat" || 
-        part.toLowerCase() === "revenue"
-      ) {
-        type = "concept";
-        subtext = "Finance Concept";
-        colorClass = "rgba(251, 191, 36, 0.15)";
-        textColor = "#fbbf24";
-      }
-
-      parsedTokens.push({
-        text: part,
-        type,
-        subtext,
-        bg: colorClass,
-        color: textColor
-      });
-    }
-
-    setTokens(parsedTokens);
-    setIsTokenized(true);
-  };
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       onStartSearch(searchQuery);
     }
   };
-
-  const performanceMetrics = [
-    { label: "Inference Latency (lower is better)", val1: "850ms", val2: "65ms", pct1: 100, pct2: 7.6, label1: "Llama-3-70B", label2: "Uper SLM (4.8B)" },
-    { label: "Token Efficiency for Indian Financial Jargon", val1: "340 tokens", val2: "112 tokens", pct1: 33, pct2: 100, label1: "Standard Tokenizer", label2: "Uper Custom Tokenizer" },
-    { label: "Indian Tax Code Compliance Score", val1: "74%", val2: "98.5%", pct1: 74, pct2: 98.5, label1: "GPT-4o", label2: "Uper SLM (4.8B)" }
-  ];
 
   return (
     <div className="landing-scroll-container">
@@ -247,7 +163,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
             <button onClick={() => scrollToSection(featuresRef)} className="nav-link-btn">Features</button>
             <button onClick={() => scrollToSection(statsRef)} className="nav-link-btn">Market Ticker</button>
             <button onClick={() => scrollToSection(whyRef)} className="nav-link-btn">Why UperAI</button>
-            <button onClick={() => scrollToSection(roadmapRef)} className="nav-link-btn">SLM Roadmap</button>
           </nav>
 
           <div className="header-actions">
@@ -282,7 +197,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
             <button onClick={() => scrollToSection(featuresRef)} className="mobile-drawer-link">Features</button>
             <button onClick={() => scrollToSection(statsRef)} className="mobile-drawer-link">Market Ticker</button>
             <button onClick={() => scrollToSection(whyRef)} className="mobile-drawer-link">Why UperAI</button>
-            <button onClick={() => scrollToSection(roadmapRef)} className="mobile-drawer-link">SLM Roadmap</button>
             <div className="mobile-drawer-divider" />
             {user ? null : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -576,153 +490,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         </div>
       </section>
 
-      {/* SLM Roadmap Timeline & Benchmarks Section */}
-      <section ref={roadmapRef} className="roadmap-landing-section">
-        <div className="section-header">
-          <span className="section-subtitle">Deep Tech & Model Roadmap</span>
-          <h2 className="section-title">Proprietary Small Language Model</h2>
-          <p className="section-desc">
-            We are training a custom 4.8-Billion parameter Small Language Model specialized exclusively for Indian finance, tax codes, and corporate filings.
-          </p>
-        </div>
-
-        <div className="slm-grid-2">
-          {/* Benchmarks */}
-          <div className="slm-card glass-card">
-            <h2>
-              <Gauge size={20} style={{ color: 'var(--accent-color)', marginRight: '8px' }} />
-              Performance Benchmarks
-            </h2>
-            <p className="card-intro">
-              Standard models fail on regional corporate filing structures. Uper SLM is optimized for high-speed local inference.
-            </p>
-            
-            <div className="perf-comparison-bar">
-              {performanceMetrics.map((metric, i) => (
-                <div className="bar-wrapper" key={i}>
-                  <span className="bar-title">{metric.label}</span>
-                  <div className="bar-group">
-                    {/* Model 1 */}
-                    <div className="bar-sub-row">
-                      <span className="model-label">{metric.label1}</span>
-                      <span className="model-val">{metric.val1}</span>
-                    </div>
-                    <div className="bar-progress-bg">
-                      <div className="bar-progress-fill standard" style={{ width: `${metric.pct1}%` }} />
-                    </div>
-                    
-                    {/* Model 2 */}
-                    <div className="bar-sub-row active">
-                      <span className="model-label active">{metric.label2}</span>
-                      <span className="model-val active">{metric.val2}</span>
-                    </div>
-                    <div className="bar-progress-bg">
-                      <div className="bar-progress-fill premium" style={{ width: `${metric.pct2}%` }} />
-                    </div>
-                  </div>
-                  {i < performanceMetrics.length - 1 && <div className="bar-divider" />}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tokenizer Sandbox */}
-          <div className="slm-card glass-card">
-            <h2>
-              <Terminal size={20} style={{ color: 'var(--accent-color)', marginRight: '8px' }} />
-              Financial Tokenizer Sandbox
-            </h2>
-            <p className="card-intro">
-              Interactive test showing how our custom tokenizer segments Indian currency and ticker words, saving massive token costs.
-            </p>
-
-            <div className="tokenizer-demo">
-              <div className="tokenizer-input-group">
-                <input
-                  type="text"
-                  className="tokenizer-field"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Type a financial sentence..."
-                />
-                <button className="tokenizer-btn" onClick={handleTokenize}>
-                  Tokenize
-                </button>
-              </div>
-
-              <div className="tokenizer-tokens-wrapper">
-                {!isTokenized ? (
-                  <div className="tokenizer-placeholder">
-                    Click Tokenize to analyze tokens...
-                  </div>
-                ) : (
-                  <div className="token-pills-container">
-                    {tokens.map((tok, i) => (
-                      <div
-                        key={i}
-                        className="token-pill"
-                        style={{
-                          backgroundColor: tok.bg,
-                          color: tok.color,
-                          borderColor: tok.color + "25"
-                        }}
-                      >
-                        <span className="token-pill-text">{tok.text}</span>
-                        <span className="token-subtext">{tok.subtext}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline Roadmap */}
-        <div className="timeline-roadmap-card glass-card">
-          <h2>
-            <Layers size={20} style={{ color: 'var(--accent-color)', marginRight: '8px' }} />
-            Model Architecture & Training Roadmap
-          </h2>
-          <p className="card-intro">
-            Transitioning from pre-training token alignments to broker API execution interfaces.
-          </p>
-
-          <div className="roadmap-timeline">
-            <div className="timeline-milestone active">
-              <div className="milestone-dot">1</div>
-              <div className="milestone-content">
-                <h3>Phase 1: Pretraining & Token Alignment (Completed)</h3>
-                <p>Aligned model weights on 400 Billion tokens of SEBI corporate disclosures, MCA company records, and BSE/NSE pricing history.</p>
-              </div>
-            </div>
-
-            <div className="timeline-milestone active">
-              <div className="milestone-dot">2</div>
-              <div className="milestone-content">
-                <h3>Phase 2: Analyst RLHF & Instruction Tuning (Active)</h3>
-                <p>Aligning model responses with leading equity research desks and charter financial analysts for reasoning accuracy.</p>
-              </div>
-            </div>
-
-            <div className="timeline-milestone">
-              <div className="milestone-dot">3</div>
-              <div className="milestone-content">
-                <h3>Phase 3: Edge Slicing & Sub-100ms Inference (Preview)</h3>
-                <p>Optimizing model weights to 4-bit quantizations, allowing sub-100ms streaming responses natively on client dashboards.</p>
-              </div>
-            </div>
-
-            <div className="timeline-milestone">
-              <div className="milestone-dot">4</div>
-              <div className="milestone-content">
-                <h3>Phase 4: Agentic Trading Executions (Upcoming)</h3>
-                <p>Integrating direct API connections to leading Indian brokerages (Zerodha, Groww, AngelOne) for conversation-initiated trade orders.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="landing-footer">
@@ -738,7 +505,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
               <h4>Platform</h4>
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(featuresRef); }}>Features</a>
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(statsRef); }}>Market Stats</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(roadmapRef); }}>SLM Roadmap</a>
             </div>
 
             <div className="footer-link-group">

@@ -243,23 +243,27 @@ Day High/Low: ₹${low.toFixed(2)} - ₹${high.toFixed(2)}
 
 Provide a structured JSON response with the following format:
 {
-  "summary": "2-3 sentence market summary of today's momentum and key levels for the stock.",
+  "summary": "Crisp 1-2 sentence analytical summary of today's momentum and key price target levels for the stock.",
   "peRatio": "Current/estimated P/E ratio, e.g. '28.5x' or '34.2x'",
   "marketCap": "Current market cap, e.g. '₹1.92 Lakh Cr' or '₹45,200 Cr'",
   "divYield": "Dividend yield, e.g. '0.85%' or '1.2%'",
   "roe": "ROE, e.g. '14.5%' or '22.1%'",
-  "technicalOverview": "2-3 sentence technical analysis of the price relative to 52-week bounds and volume (${volume.toLocaleString('en-IN')} shares).",
+  "technicalOverview": "Analytical technical breakdown of the price action relative to the 52-week bounds and volume (${volume.toLocaleString('en-IN')} shares). Use concise bullet points.",
   "sections": [
     {
       "title": "Growth Catalysts & Moat",
-      "content": "Description of catalysts and business advantages."
+      "content": "• Direct growth drivers (with specific percentages/metrics where possible).\n• Key competitive advantages (moat) in the domestic market."
     },
     {
       "title": "Key Valuation Risks",
-      "content": "Description of industry risks or valuation concerns."
+      "content": "• Specific headwinds or valuation premium concerns.\n• Industry macro risks (e.g. input price inflation, regulatory shifts)."
     }
   ]
-}`;
+}
+
+CRITICAL RULES:
+1. Output MUST be extremely crisp, expert-level, and highly knowledgeable. Avoid generic fluff.
+2. Format the section content and technicalOverview using clean bullet points (•) and bold keywords for maximum readability.`;
             
             const apiRes = await queryUperAI(prompt, true);
             if (apiRes) {
@@ -537,8 +541,8 @@ Provide a structured JSON response with the following format:
 Provide a high-fidelity structured analysis for the query: "${text}".
 Return ONLY a valid JSON object (do not include markdown code block formatting like \`\`\`json, do not include any backticks or leading/trailing text) with the following schema:
 {
-  "summary": "Concise analytical summary of the query under 100 words (no markdown formatting).",
-  "sources": ["List of 2-3 realistic sources, e.g. NSE Filings, Analyst Reports"],
+  "summary": "Highly knowledgeable, crisp analytical summary under 75 words. Use bold terms for key metrics.",
+  "sources": ["List of 2-3 realistic sources, e.g. Q4 Concall Transcript, SEBI Disclosures"],
   "metrics": [
     {"label": "Metric Name", "value": "Metric Value", "change": "Change/Status (e.g. +1.5%, Low Debt, or N/A)"}
   ],
@@ -547,7 +551,7 @@ Return ONLY a valid JSON object (do not include markdown code block formatting l
     {"label": "Point Label (e.g. Q1, Q2 or Week 1)", "revenue": 100}
   ],
   "sections": [
-    {"title": "Section Title", "content": "Section Content"}
+    {"title": "Section Title (e.g. Management Guidance, Capex & Margins, Concall Key Takeaways)", "content": "Bulleted takeaways using •, outlining guidance percentages, operational constraints, and clear management comments."}
   ],
   "tableData": [ // Optional: include ONLY if comparing stocks or showing multiple companies
     {"name": "Stock Name", "ticker": "TICKER", "pe": "PE", "peg": "PEG", "roe": "ROE", "ebitda": "EBITDA"}
@@ -555,9 +559,13 @@ Return ONLY a valid JSON object (do not include markdown code block formatting l
 }
 
 CRITICAL RULES:
-1. Return ONLY the raw JSON object. The response must start with '{' and end with '}'.
+1. Return ONLY the raw JSON object starting with '{' and ending with '}'.
 2. Provide at least 3-5 chart points in chartData with numerical values for Y-axis (revenue parameter).
-3. If the query asks about specific stock pricing, make up realistic prices/trends.`;
+3. If the query asks about specific stock pricing, make up realistic prices/trends.
+4. Output MUST be extremely crisp, professional, and knowledgeable.
+5. If the query concerns an earnings call (concall), annual report, or results:
+   - Ensure the 'summary' and 'sections' focus strictly on concall highlights: management guidance, capital outlay (capex), volume metrics, margin pressures, and specific analyst Q&A takeaways.
+   - Use bullet points (•) and bold subtitles in sections for high readability.`;
 
         const apiRes = await queryUperAI(prompt, true);
         if (apiRes) {

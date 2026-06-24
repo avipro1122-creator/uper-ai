@@ -47,25 +47,25 @@ export const MOCK_RESPONSES = {
     gemini: {
       latency: "840ms",
       sources: ["Q4 FY25 Investor Presentation", "SEBI Disclosures", "RIL Concall Transcript", "Jio Platforms Press Release"],
-      summary: `Reliance Industries (RIL) delivered a resilient performance in Q4 FY25, characterized by robust momentum in consumer businesses (Retail and Jio) which offset near-term cyclical margins in the Oil-to-Chemicals (O2C) segment. Consolidated revenue stood at ₹2,54,820 crore (up 6.8% YoY), while Net Profit rose to ₹19,876 crore.`,
+      summary: `**Reliance Industries (RIL)** reported a stable Q4 FY25 with consolidated revenue at **₹2,54,820 Cr** (+6.8% YoY) and net profit at **₹19,876 Cr** (+0.8% YoY). Consumer business expansions (Retail/Jio) effectively neutralized margin contractions in the fossil-fuel O2C division.`,
       sections: [
         {
-          title: "Segment 1: Digital Services (Jio Platforms)",
-          content: "Jio reported stellar ARPU stabilization at ₹182.4, driven by increased 5G adoption and fixed broadband growth. Subscriber count expanded to 497 million. Segment EBITDA margin remained stable at 50.2%, reflecting operating leverage."
+          title: "1. Digital Services (Jio Concall Highlights)",
+          content: "• **ARPU Stabilization**: Stood at **₹182.4** (+2.5% QoQ) driven by migration to 5G tariffs and fiber traction.\n• **Subscriber Scale**: Reached **497M** total users, maintaining lowest churn rate in industry (0.9%).\n• **EBITDA Margin**: Stable at **50.2%** due to scale benefits offsetting 5G infrastructure expenses."
         },
         {
-          title: "Segment 2: Organized Retail (Reliance Retail)",
-          content: "Revenues registered a 10.2% YoY growth, driven by footfalls exceeding 272 million across 18,800+ stores. Grocery and Fashion led the growth charge, with digital commerce channels now accounting for 12% of total sales."
+          title: "2. Organized Retail (Reliance Retail Concall Highlights)",
+          content: "• **Footfall Surge**: Documented **272M+** visits across 18,800+ stores (+10.2% YoY).\n• **Digital Traction**: Digital commerce and new commerce channels contributed **12%** of total segment revenue.\n• **EBITDA Growth**: Expanded by **11.5% YoY** to ₹5,820 Cr, led by grocery and consumer electronics segments."
         },
         {
-          title: "Segment 3: Oil-to-Chemicals (O2C)",
-          content: "Margins remained suppressed due to weak global refining margins (GRMs) and lower petrochemical spreads. Crude throughput was maintained at 19.8 MMT. The segment is shifting capex towards the New Energy ecosystem (Dhirubhai Ambani Green Energy Giga Complex)."
+          title: "3. O2C Segment & Capex Guidance",
+          content: "• **Margin Drag**: EBITDA down by **1.2%** to ₹17,215 Cr due to compressed global refining spreads (GRMs).\n• **Concall Capex Guidance**: Projected FY26 capital outlay of **₹1.2 - 1.4 Lakh Cr**; shift in allocation towards the Dhirubhai Ambani Green Energy complex.\n• **Renewables Timeline**: Solar gigafactory module line set to commission in late FY26."
         }
       ],
       metrics: [
         { label: "Consol Revenue", value: "₹2.54 L Cr", change: "+6.8% YoY" },
         { label: "Jio ARPU", value: "₹182.4", change: "+2.5% QoQ" },
-        { label: "Retail Stores", value: "18,800+", change: "+1,200 Net Add" },
+        { label: "Retail Stores", value: "18,800+", change: "+1,20Net Add" },
         { label: "O2C EBITDA Margin", value: "7.9%", change: "-120 bps YoY" }
       ],
       chartData: STOCK_DATA.RELIANCE.chartData,
@@ -104,15 +104,15 @@ export const MOCK_RESPONSES = {
     gemini: {
       latency: "920ms",
       sources: ["Nifty Auto Valuation Model", "FY25 Annual Reports", "Ambit Institutional Equities Research"],
-      summary: `An evaluation of the Indian Automotive space (Nifty Auto Index) reveals diverging valuation dispersion. Commercial Vehicles (CV) and Passenger Vehicles (PV) are reaching peak cyclicality, whereas Two-Wheelers are seeing a rural recovery. Tata Motors and Bajaj Auto display the strongest structural profiles under current valuations.`,
+      summary: `Valuations across the **Nifty Auto Index** are showing wide dispersion. Commercial Vehicles (CVs) are stabilizing near cyclical peaks, while Two-Wheelers (2Ws) are enjoying rural consumption recovery. **Tata Motors** and **Bajaj Auto** show the strongest margin of safety.`,
       sections: [
         {
-          title: "Valuation Gap Analysis",
-          content: "Tata Motors trades at an attractive EV/EBITDA of ~6.8x and P/E of 11.2x, significantly discounted relative to historical averages. This is driven by concerns over JLR's EV transition capex. However, its domestic passenger vehicle and commercial vehicle divisions are self-sustaining and net-debt free."
+          title: "1. Tata Motors (TATAMOTORS) Concall Analysis",
+          content: "• **Valuation Gap**: Trades at EV/EBITDA of **6.2x** and forward P/E of **11.2x**, which is a significant historical discount.\n• **JLR Margin Guidance**: Management guides JLR EBITDA margins to remain stable at **>16%** for FY26 despite heavy EV capex.\n• **Debt Profile**: Net automotive debt stands fully eliminated, generating strong free cash flows."
         },
         {
-          title: "Two-Wheeler Premium vs Value",
-          content: "Bajaj Auto trades at a premium P/E of 24.1x, but boasts a massive 28.1% ROE and a 19.5% EBITDA margin, supported by strong export market recovery and EV Chetak scaling. Maruti Suzuki trades at 28.5x P/E, which leaves limited margin of safety given rising competition in the SUV segment."
+          title: "2. Bajaj Auto & Two-Wheeler Export Traction",
+          content: "• **Financial Strength**: Boasts the highest sector ROE (**28.1%**) and premium EBITDA margins (**19.5%**).\n• **EV Scaling**: Chetak brand is scaling rapidly, targeting **20,000+ monthly retail volumes**.\n• **Export Recovery**: Concall signals export inventory normalization in African/LATAM markets, hinting at volume double-digit recovery in Q2 FY26."
         }
       ],
       tableData: STOCK_DATA.AUTO_SECTOR,
@@ -151,15 +151,15 @@ export const MOCK_RESPONSES = {
     gemini: {
       latency: "790ms",
       sources: ["PM Surya Ghar Muft Bijli Yojana circular", "Tata Power Renewable Energy filings", "MNRE notifications"],
-      summary: `The launch of the PM Surya Ghar: Muft Bijli Yojana (targeting solar installation for 10 million households) is a secular tailwind for Tata Power. As the market leader in the solar rooftop EPC segment with ~13% market share, the policy dramatically expands Tata Power's addressable market.`,
+      summary: `The launch of the **PM Surya Ghar: Muft Bijli Yojana** (subsidizing solar installs for 10M homes) is a structural tailwind for **Tata Power**. Holding a **13.2% market share** in solar rooftop EPC, the policy dramatically scales up Tata Power's addressable retail market.`,
       sections: [
         {
-          title: "EPC Segment Expansion",
-          content: "Tata Power operates an active manufacturing facility of 4.3 GW cell and module lines in Tamil Nadu. The policy provides direct backward integration value, allowing them to capture higher margins on captive cell supply compared to import-dependent competitors."
+          title: "1. Manufacturing Capacity & Margins",
+          content: "• **Backward Integration**: Active 4.3 GW solar cell & module line in Tamil Nadu protects margins from Chinese import dependencies.\n• **Margin Guidance**: Concall indicators guide solar EPC margin expansion of **+80 bps** due to localization of supply lines.\n• **Order Book Visibility**: Standing order book at **₹15,400 Cr**, ensuring solid revenue pipeline."
         },
         {
-          title: "Financial Projections",
-          content: "Their order book stands at ₹15,400 crore. We project the rooftop segment to grow at a 35% CAGR over the next 3 years. This will push Tata Power's return ratios (ROE/ROCE) into the 14-16% range, justifying its current forward earnings premium of 34.8x."
+          title: "2. Financial Projections & Return Ratios",
+          content: "• **Growth Forecast**: Rooftop solar segment is projected to grow at **35% CAGR** over FY26-FY28.\n• **Return Profile**: Expected expansion of consolidated ROCE to **14.5% - 16.0%** (up from 12.4% present) over the next two fiscals.\n• **Valuation Justification**: Higher cash flow visibility justifies forward P/E premium of **34.8x**."
         }
       ],
       metrics: [
@@ -196,7 +196,7 @@ export const DEFAULT_RESPONSES = {
   nifty: {
     gemini: {
       latency: "610ms",
-      summary: "The Nifty 50 Index is consolidating in the 23,200 - 23,600 range. FIIs remain net sellers due to high US treasury yields, but domestic institutional inflows (DIIs) via SIPs (averaging ₹20,000+ Cr monthly) provide a robust floor. Main triggers are upcoming budget sessions and corporate earnings reports."
+      summary: "The **Nifty 50 Index** is consolidating in the 23,200 - 23,600 range. DII support (averaging **₹20,000+ Cr monthly** SIP inflows) provides a solid floor, buffering against steady FII selloffs triggered by high US yields. Triggers to track: upcoming budget capex outlays and Q1 corporate earnings guidance."
     },
     xai: {
       latency: "280ms",
@@ -210,7 +210,7 @@ export const DEFAULT_RESPONSES = {
   generic: {
     gemini: {
       latency: "750ms",
-      summary: "I can help you analyze Indian equities by integrating financial statements, earnings calls (concalls), annual reports, and macro-news. Try asking: \n\n1. *'Analyze Reliance Industries Q4 performance and segmental growth'*\n2. *'List undervalued stocks in the Indian Auto sector'*\n3. *'Impact of the new rooftop solar policy on Tata Power'*"
+      summary: "I can help you analyze Indian equities by integrating financial statements, earnings call concalls, annual reports, and live news. Try asking: \n\n1. *'Analyze Reliance Industries Q4 performance and segmental growth'*\n2. *'List undervalued stocks in the Indian Auto sector'*\n3. *'Impact of the new rooftop solar policy on Tata Power'*"
     },
     xai: {
       latency: "320ms",
