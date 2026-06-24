@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Cpu, LogOut, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { MessageSquare, Cpu, LogOut, ShieldCheck, ShieldAlert, Menu, X, Compass, FileText, Database, Activity } from 'lucide-react';
 import ChatInterface from './components/ChatInterface';
 import SLMVision from './components/SLMVision';
 import Auth from './components/Auth';
 import AdminDashboard from './components/AdminDashboard';
+import LandingPage from './components/LandingPage';
 import './App.css';
 
 // Inline GitHub SVG component
@@ -26,28 +27,50 @@ const GithubIcon = ({ size = 16, ...props }) => (
 );
 
 function App() {
-  const [activeView, setActiveView] = useState('chat'); // 'chat', 'roadmap', 'admin', 'forbidden'
+  const [activeView, setActiveView] = useState('home'); // 'home', 'chat', 'roadmap', 'admin', 'forbidden'
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [landingSearchQuery, setLandingSearchQuery] = useState('');
+
+  const handleStartSearch = (query) => {
+    // Check limit rules first for guest users
+    if (!user) {
+      const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+      if (currentCount >= 2) {
+        navigate('auth', '/login?limit=2');
+        return;
+      }
+    }
+    setLandingSearchQuery(query);
+    navigate('chat', '/chat');
+  };
 
   // Sync state with URL path
   const syncViewWithURL = (currentUser) => {
     const path = window.location.pathname;
     if (path.startsWith('/admin')) {
       if (currentUser) {
-        if (currentUser.role === 'ADMIN') {
+        if (currentUser.email?.toLowerCase() === 'avipro1122@gmail.com') {
           setActiveView('admin');
         } else {
           setActiveView('forbidden');
         }
       } else {
-        // Fallback to chat or let auth load
-        setActiveView('chat');
+        setActiveView('auth');
       }
+    } else if (path === '/login') {
+      setActiveView('auth');
     } else if (path === '/roadmap') {
-      setActiveView('roadmap');
-    } else {
+      if (currentUser) {
+        setActiveView('roadmap');
+      } else {
+        setActiveView('auth');
+      }
+    } else if (path === '/chat') {
       setActiveView('chat');
+    } else {
+      setActiveView('home');
     }
   };
 
@@ -62,13 +85,23 @@ function App() {
           syncViewWithURL(data.user);
         } else {
           setUser(null);
-          // If accessing admin, force login view
-          if (window.location.pathname.startsWith('/admin')) {
-            window.history.pushState({}, '', '/');
+          try {
+            localStorage.removeItem('uperai_query_count');
+            localStorage.removeItem('uperai_chat_messages');
+          } catch (e) {
+            console.error("Failed to clear guest session from localStorage:", e);
           }
+          syncViewWithURL(null);
         }
       } catch (err) {
         console.error("Session verification failed:", err);
+        try {
+          localStorage.removeItem('uperai_query_count');
+          localStorage.removeItem('uperai_chat_messages');
+        } catch (e) {
+          console.error("Failed to clear guest session from localStorage:", e);
+        }
+        syncViewWithURL(null);
       } finally {
         setLoadingSession(false);
       }
@@ -88,6 +121,7 @@ function App() {
   const navigate = (viewName, path) => {
     window.history.pushState({}, '', path);
     setActiveView(viewName);
+    setSidebarOpen(false);
   };
 
   const handleLoginSuccess = (loggedInUser) => {
@@ -102,13 +136,19 @@ function App() {
       console.error("Logout request failed:", e);
     }
     setUser(null);
+    try {
+      localStorage.removeItem('uperai_chat_messages');
+      localStorage.removeItem('uperai_query_count');
+    } catch (err) {
+      console.error("Failed to clear localStorage on logout:", err);
+    }
     navigate('chat', '/');
   };
 
   // Loading Splash Screen
   if (loadingSession) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#050505', color: '#fff' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-deep)', color: 'var(--text-primary)' }}>
         <div style={{ textAlign: 'center' }}>
           <div className="admin-spinner" style={{ margin: '0 auto 20px auto' }}></div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
@@ -119,9 +159,21 @@ function App() {
     );
   }
 
-  // Not Logged In -> Show Auth screen
-  if (!user) {
-    return <Auth onLoginSuccess={handleLoginSuccess} />;
+  // Show Landing Page
+  if (activeView === 'home') {
+    return (
+      <LandingPage 
+        user={user} 
+        onStartSearch={handleStartSearch} 
+        onNavigateToView={(view, path) => navigate(view, path || (view === 'chat' ? '/chat' : '/'))}
+        onRequireLogin={() => navigate('auth', '/login?limit=2')}
+      />
+    );
+  }
+
+  // Show Auth screen if requested
+  if (activeView === 'auth') {
+    return <Auth onLoginSuccess={handleLoginSuccess} onBack={() => navigate('home', '/')} />;
   }
 
   // 403 Forbidden Screen
@@ -151,118 +203,140 @@ function App() {
   }
 
   return (
-    <div className="app-container theme-slm">
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)', color: 'var(--text-primary)' }}>
+      {/* Background radial glow behind center area */}
+      <div className="hero-glow-bg" />
+
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="logo-container">
-          <div className="logo-icon">U</div>
-          <div>
-            <span className="logo-text">UperAI</span>
-            <span className="logo-badge" style={{ background: 'var(--accent-gradient)', color: '#050505' }}>v2.4</span>
+      <aside className={`sidebar-nav ${sidebarOpen ? 'mobile-open' : ''}`}>
+        {/* Mobile close button */}
+        <button 
+          className="mobile-sidebar-close" 
+          onClick={() => setSidebarOpen(false)}
+        >
+          <X size={20} />
+        </button>
+
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Logo Brand area */}
+          <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ background: 'var(--accent-glow)', padding: '6px', borderRadius: '8px', border: '1px solid rgba(0, 201, 167, 0.2)' }}>
+                <Activity size={18} style={{ color: 'var(--accent-color)' }} />
+              </div>
+              <div>
+                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.5px', margin: 0 }}>
+                  UPER<span style={{ color: 'var(--accent-color)' }}>AI</span>
+                </h1>
+                <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                  Equity Intelligence
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <nav className="nav-links">
-          <span className="nav-section-title">Navigation</span>
-          
-          <button 
-            className={`nav-item ${activeView === 'chat' ? 'active' : ''}`}
-            onClick={() => navigate('chat', '/')}
-          >
-            <MessageSquare size={16} />
-            <span>Research Terminal</span>
-          </button>
-
-          <button 
-            className={`nav-item ${activeView === 'roadmap' ? 'active' : ''}`}
-            onClick={() => navigate('roadmap', '/roadmap')}
-          >
-            <Cpu size={16} />
-            <span>Uper SLM Vision</span>
-          </button>
-
-          {user.role === 'ADMIN' && (
-            <>
-              <span className="nav-section-title" style={{ marginTop: '16px' }}>Administration</span>
+          {/* Navigation Links */}
+          <nav style={{ flex: 1, padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <button 
+              className={`nav-item ${activeView === 'chat' ? 'active' : ''}`}
+              onClick={() => navigate('chat', '/')}
+            >
+              <Compass size={16} />
+              <span>Research Terminal</span>
+            </button>
+            <button 
+              className={`nav-item ${activeView === 'roadmap' ? 'active' : ''}`}
+              onClick={() => navigate('roadmap', '/roadmap')}
+            >
+              <FileText size={16} />
+              <span>SLM Roadmap</span>
+            </button>
+            
+            {user?.email?.toLowerCase() === 'avipro1122@gmail.com' && (
               <button 
                 className={`nav-item ${activeView === 'admin' ? 'active' : ''}`}
                 onClick={() => navigate('admin', '/admin')}
-                style={{ border: '1px solid rgba(0, 229, 196, 0.15)', background: 'rgba(0, 229, 196, 0.02)' }}
               >
-                <ShieldCheck size={16} style={{ color: '#00E5C4' }} />
-                <span>Admin Dashboard</span>
+                <Database size={16} />
+                <span>Admin Terminal</span>
               </button>
-            </>
-          )}
-        </nav>
+            )}
+          </nav>
 
-        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* User Profile Card */}
-            <div className="sidebar-profile-card">
-              <img src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} alt={user.name} className="profile-avatar" />
-              <div className="profile-details">
-                <span className="profile-name">{user.name}</span>
-                <span className="profile-email">{user.email}</span>
-                {user.role === 'ADMIN' && (
-                  <span className="role-badge admin" style={{ fontSize: '9px', padding: '1px 4px', marginTop: '2px', display: 'inline-block', width: 'fit-content' }}>Admin</span>
-                )}
+          {/* Bottom user status/profile or Sign In button */}
+          <div style={{ padding: '16px', borderTop: '1px solid var(--border-subtle)', background: 'rgba(255,255,255,0.01)' }}>
+            {user ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} alt={user.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-subtle)' }} />
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.email}</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.15)',
+                    color: '#EF4444',
+                    padding: '6px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <LogOut size={12} />
+                  Logout
+                </button>
               </div>
-            </div>
-
-            <button onClick={handleLogout} className="logout-btn">
-              <LogOut size={14} />
-              <span>Log Out</span>
-            </button>
-
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="nav-item" 
-              style={{ padding: '8px 10px', fontSize: '0.82rem' }}
-            >
-              <GithubIcon size={14} />
-              <span>GitHub Repository</span>
-            </a>
-            
-            <div style={{ padding: '8px 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <span>Engineered for Indian Equities. Powered by Uper Finance Engine.</span>
-            </div>
+            ) : (
+              <button 
+                onClick={() => navigate('auth', '/login')}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, var(--accent-color), #00E5C0)',
+                  border: 'none',
+                  color: '#050B14',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(0, 201, 167, 0.2)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <LogOut size={12} style={{ transform: 'rotate(180deg)' }} />
+                Sign In to Platform
+              </button>
+            )}
           </div>
         </div>
       </aside>
 
       {/* Main Container */}
       <main style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100vh', overflow: 'hidden' }}>
-        {/* Main Workspace Header */}
-        <div className="main-header" style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(5, 5, 5, 0.85)', backdropFilter: 'blur(12px)', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.3px' }}>
-              {activeView === 'chat' ? 'Research Terminal' : 'Proprietary SLM Roadmap'}
-            </h2>
-            <span style={{ background: 'rgba(0, 229, 196, 0.08)', border: '1px solid rgba(0, 229, 196, 0.25)', color: '#00E5C4', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              v2.4
-            </span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '0.82rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-              <span className="nav-status-dot"></span>
-              <span>System Online</span>
-            </div>
-            <div style={{ height: '12px', width: '1px', background: 'var(--border-subtle)' }} />
-            <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-              <span>NSE/BSE Engine</span>
-            </div>
-            <div style={{ height: '12px', width: '1px', background: 'var(--border-subtle)' }} />
-            <img src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} alt={user.name} className="nav-user-avatar" title={user.name} />
-          </div>
-        </div>
-
         {/* Workspace views */}
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
           {activeView === 'chat' ? (
-            <ChatInterface />
+            <ChatInterface 
+              user={user} 
+              onRequireLogin={() => navigate('auth', '/login?limit=2')} 
+              initialQuery={landingSearchQuery}
+              onClearInitialQuery={() => setLandingSearchQuery('')}
+            />
           ) : (
             <SLMVision />
           )}

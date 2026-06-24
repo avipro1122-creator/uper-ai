@@ -28,8 +28,24 @@ const suggestionPills = [
   { label: "Small Caps", query: "Analyze undervalued small-caps with earnings breakouts" }
 ];
 
-export default function ChatInterface() {
-  const [messages, setMessages] = useState([]);
+export default function ChatInterface({ user, onRequireLogin, initialQuery, onClearInitialQuery }) {
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('uperai_chat_messages');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('uperai_chat_messages', JSON.stringify(messages));
+    } catch (e) {
+      console.error("Failed to save messages to localStorage:", e);
+    }
+  }, [messages]);
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -309,6 +325,14 @@ Provide a structured JSON response with the following format:
   };
 
   const handleSelectStock = (stock) => {
+    if (!user) {
+      const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+      if (currentCount >= 2) {
+        onRequireLogin();
+        return;
+      }
+    }
+
     setInputValue('');
     setSearchResults([]);
     setShowDropdown(false);
@@ -317,6 +341,15 @@ Provide a structured JSON response with the following format:
     const userMsg = { sender: 'user', text: `Search real-time stock details for ${stock.longname || stock.shortname || stock.symbol} (${stock.symbol})` };
     setMessages(prev => [...prev, userMsg]);
     
+    if (!user) {
+      try {
+        const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+        localStorage.setItem('uperai_query_count', (currentCount + 1).toString());
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
   };
 
@@ -380,6 +413,14 @@ Provide a structured JSON response with the following format:
     const text = textToSend || inputValue;
     if (!text.trim()) return;
 
+    if (!user) {
+      const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+      if (currentCount >= 2) {
+        onRequireLogin();
+        return;
+      }
+    }
+
     // Add user message
     const userMsg = { sender: 'user', text };
     setMessages(prev => [...prev, userMsg]);
@@ -387,6 +428,15 @@ Provide a structured JSON response with the following format:
     setSearchResults([]);
     setShowDropdown(false);
     setIsTyping(true);
+
+    if (!user) {
+      try {
+        const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+        localStorage.setItem('uperai_query_count', (currentCount + 1).toString());
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
     const cleanQuery = text.toLowerCase();
     
@@ -574,6 +624,16 @@ CRITICAL RULES:
     }
   };
 
+  // Handle initial query from landing page search
+  useEffect(() => {
+    if (initialQuery) {
+      handleSend(initialQuery);
+      if (onClearInitialQuery) {
+        onClearInitialQuery();
+      }
+    }
+  }, [initialQuery]);
+
   const toggleSection = (messageIdx, sectionIdx) => {
     const key = `${messageIdx}-${sectionIdx}`;
     setExpandedSectionIdx(prev => ({
@@ -588,22 +648,12 @@ CRITICAL RULES:
       <div className="main-content-column">
         
         {/* Message Space */}
-        <div className="chat-area-container" style={{ flex: 1 }}>
+        <div className="chat-area-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {messages.length === 0 ? (
-            <div className="welcome-container" style={{ padding: '20px 20px 40px 20px' }}>
+            <div className="welcome-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: '100%' }}>
               
-              {/* Hero Section relocated upward */}
-              <div className="hero-section">
-                <h1 className="hero-title">
-                  First-Principles <span className="hero-glow-title">Equity Translator</span>
-                </h1>
-                <p className="hero-subtitle">
-                  Translate complex corporate filings, financial disclosures, and live market quotes into plain, first-principles investment summaries.
-                </p>
-              </div>
-
               {/* Centerpiece Search Area */}
-              <div className="centerpiece-search-wrapper">
+              <div className="centerpiece-search-wrapper" style={{ width: '100%', maxWidth: '800px', margin: 'auto 0' }}>
                 <div className="centerpiece-input-bar">
                   <Search size={20} style={{ color: 'var(--accent-color)', marginRight: '14px' }} />
                   <input
@@ -621,49 +671,6 @@ CRITICAL RULES:
                     <span>Translate</span>
                     <ArrowUpRight size={16} />
                   </button>
-                </div>
-              </div>
-
-              {/* Interactive Suggestion Pills below search */}
-              <div className="suggestion-pills-row">
-                {suggestionPills.map((pill, idx) => (
-                  <button
-                    key={idx}
-                    className="suggestion-pill-terminal"
-                    onClick={() => handleSend(pill.query)}
-                  >
-                    <Sparkles size={11} style={{ color: 'var(--accent-color)' }} />
-                    <span>{pill.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Live Preview Card */}
-              <div className="live-preview-card">
-                <div className="live-preview-header">
-                  <div className="live-preview-title">
-                    <span className="live-preview-pulse"></span>
-                    <span>RELIANCE INDUSTRIES</span>
-                  </div>
-                  <span className="live-preview-badge">Live analysis preview</span>
-                </div>
-                <div className="live-preview-grid">
-                  <div className="live-preview-item">
-                    <span className="live-preview-label">Core Engine</span>
-                    <span className="live-preview-val">Retail + Jio consumer ecosystem driving massive cash flows.</span>
-                  </div>
-                  <div className="live-preview-item">
-                    <span className="live-preview-label">Growth Catalyst</span>
-                    <span className="live-preview-val">Green hydrogen & solar gigafactories commissioning in FY26.</span>
-                  </div>
-                  <div className="live-preview-item">
-                    <span className="live-preview-label">Key Risk</span>
-                    <span className="live-preview-val">Prolonged capital expenditure cycles impacting immediate ROCE.</span>
-                  </div>
-                  <div className="live-preview-item">
-                    <span className="live-preview-label">Moat Strength</span>
-                    <span className="live-preview-val live-preview-moat">9.2 / 10</span>
-                  </div>
                 </div>
               </div>
 
@@ -810,7 +817,7 @@ CRITICAL RULES:
                 </div>
               )}
 
-              <div className="input-bar" style={{ background: '#0B0B0B' }}>
+              <div className="input-bar" style={{ background: 'var(--bg-card)' }}>
                 <Search size={18} style={{ color: 'var(--text-secondary)', marginRight: '12px' }} />
                 <input
                   type="text"
@@ -833,171 +840,7 @@ CRITICAL RULES:
         )}
       </div>
 
-      {/* Right Intelligence Sidebar */}
-      <aside className="intelligence-sidebar">
-        {/* Fear & Greed Meter */}
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">
-            <Compass size={13} style={{ color: 'var(--accent-color)' }} />
-            Fear & Greed Meter
-          </span>
-          <div className="fg-meter-card">
-            <div className="fg-header">
-              <span className="fg-title">Market Mood</span>
-              <div className="fg-score-wrap">
-                <span className="fg-score-value">68</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}> / 100</span>
-              </div>
-            </div>
-            {/* Horizontal Gauge */}
-            <svg className="fg-gauge-svg" viewBox="0 0 200 15">
-              <defs>
-                <linearGradient id="fgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="var(--color-error)" />
-                  <stop offset="50%" stopColor="var(--color-warning)" />
-                  <stop offset="100%" stopColor="var(--color-success)" />
-                </linearGradient>
-              </defs>
-              <rect x="0" y="4" width="200" height="6" rx="3" fill="url(#fgGradient)" />
-              {/* Score indicator at 68% -> 136px */}
-              <circle cx="136" cy="7" r="5" className="fg-gauge-needle" />
-            </svg>
-            <div className="fg-labels">
-              <span>FEAR</span>
-              <span>NEUTRAL</span>
-              <span>GREED</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Smart Watchlist */}
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">
-            <Star size={13} style={{ color: 'var(--accent-color)' }} />
-            Smart Watchlist
-          </span>
-          <div className="watchlist-list">
-            <div className="watchlist-card" onClick={() => handleSend("Search real-time stock details for RELIANCE.NS")}>
-              <div className="watchlist-stock-info">
-                <span className="watchlist-symbol">RELIANCE</span>
-                <span className="watchlist-name">Reliance Industries</span>
-              </div>
-              {/* Sparkline UP */}
-              <svg className="sparkline-svg" viewBox="0 0 50 20">
-                <path className="sparkline-path up" d="M 2 16 Q 12 18 20 8 T 48 4" />
-              </svg>
-              <div className="watchlist-price-wrapper">
-                <span className="watchlist-price">₹2,940.50</span>
-                <span className="watchlist-change up">+1.24%</span>
-              </div>
-              <span className="ai-score-badge">9.2</span>
-            </div>
-
-            <div className="watchlist-card" onClick={() => handleSend("Search real-time stock details for HDFCBANK.NS")}>
-              <div className="watchlist-stock-info">
-                <span className="watchlist-symbol">HDFCBANK</span>
-                <span className="watchlist-name">HDFC Bank</span>
-              </div>
-              {/* Sparkline DOWN */}
-              <svg className="sparkline-svg" viewBox="0 0 50 20">
-                <path className="sparkline-path down" d="M 2 4 Q 12 3 20 12 T 48 16" />
-              </svg>
-              <div className="watchlist-price-wrapper">
-                <span className="watchlist-price">₹1,625.20</span>
-                <span className="watchlist-change down">-0.82%</span>
-              </div>
-              <span className="ai-score-badge">8.8</span>
-            </div>
-
-            <div className="watchlist-card" onClick={() => handleSend("Search real-time stock details for TCS.NS")}>
-              <div className="watchlist-stock-info">
-                <span className="watchlist-symbol">TCS</span>
-                <span className="watchlist-name">Tata Consult. Svcs</span>
-              </div>
-              {/* Sparkline UP */}
-              <svg className="sparkline-svg" viewBox="0 0 50 20">
-                <path className="sparkline-path up" d="M 2 14 Q 12 15 20 10 T 48 6" />
-              </svg>
-              <div className="watchlist-price-wrapper">
-                <span className="watchlist-price">₹3,850.10</span>
-                <span className="watchlist-change up">+0.42%</span>
-              </div>
-              <span className="ai-score-badge">8.5</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Market Sentiment */}
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">
-            <Activity size={13} style={{ color: 'var(--accent-color)' }} />
-            Market Sentiment
-          </span>
-          <div className="sentiment-metrics">
-            <div className="sentiment-row">
-              <div className="sentiment-label-bar">
-                <span className="sentiment-name">NIFTY 50</span>
-                <span className="sentiment-value">72% Bullish</span>
-              </div>
-              <div className="sentiment-progress-bg">
-                <div className="sentiment-progress-fill" style={{ width: '72%' }} />
-              </div>
-            </div>
-            <div className="sentiment-row">
-              <div className="sentiment-label-bar">
-                <span className="sentiment-name">SENSEX</span>
-                <span className="sentiment-value">68% Bullish</span>
-              </div>
-              <div className="sentiment-progress-bg">
-                <div className="sentiment-progress-fill" style={{ width: '68%' }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Trending Stocks */}
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">
-            <TrendingUp size={13} style={{ color: 'var(--accent-color)' }} />
-            Trending Stocks
-          </span>
-          <div className="watchlist-list">
-            <div className="watchlist-card" onClick={() => handleSend("Search real-time stock details for TATAPOWER.NS")}>
-              <div className="watchlist-stock-info">
-                <span className="watchlist-symbol">TATAPOWER</span>
-                <span className="watchlist-name">Tata Power Co.</span>
-              </div>
-              <svg className="sparkline-svg" viewBox="0 0 50 20">
-                <path className="sparkline-path up" d="M 2 16 Q 10 18 20 6 T 48 3" />
-              </svg>
-              <span className="ai-score-badge">9.0</span>
-            </div>
-            <div className="watchlist-card" onClick={() => handleSend("Search real-time stock details for SUZLON.NS")}>
-              <div className="watchlist-stock-info">
-                <span className="watchlist-symbol">SUZLON</span>
-                <span className="watchlist-name">Suzlon Energy</span>
-              </div>
-              <svg className="sparkline-svg" viewBox="0 0 50 20">
-                <path className="sparkline-path down" d="M 2 3 Q 12 5 20 14 T 48 17" />
-              </svg>
-              <span className="ai-score-badge">7.2</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Recently Viewed */}
-        <div className="sidebar-section">
-          <span className="sidebar-section-title">
-            <Clock size={13} style={{ color: 'var(--accent-color)' }} />
-            Recently Viewed
-          </span>
-          <div className="recently-viewed-list">
-            <button className="recent-pill" onClick={() => handleSend("Search real-time stock details for INFY.NS")}>INFY</button>
-            <button className="recent-pill" onClick={() => handleSend("Search real-time stock details for TATAMOTORS.NS")}>TATAMOTORS</button>
-            <button className="recent-pill" onClick={() => handleSend("Search real-time stock details for ZOMATO.NS")}>ZOMATO</button>
-          </div>
-        </div>
-      </aside>
+      {/* Right Intelligence Sidebar removed as requested */}
     </div>
   );
 }
