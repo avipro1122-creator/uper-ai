@@ -1,0 +1,99 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "googleId": "111111111111111111111",
+      "name": "Avi Pro (Admin)",
+      "email": "AviPro1122@gmail.com",
+      "profileImage": "https://api.dicebear.com/7.x/bottts/svg?seed=Admin",
+      "role": "ADMIN",
+      "createdAt": "2026-06-24T08:27:31.573Z",
+      "updatedAt": "2026-06-24T08:29:48.846Z",
+      "lastLogin": "2026-06-24T08:29:48.846Z"
+    }
+  ],
+  "stocks": [
+    {
+      "id": "1",
+      "ticker": "RELIANCE",
+      "name": "Reliance Industries Ltd.",
+      "price": 2945.6,
+      "change": "+1.85%",
+      "marketCap": "₹19.92 Lakh Cr",
+      "peRatio": "27.4",
+      "divYield": "0.34%",
+      "roe": "9.6%"
+    },
+    {
+      "id": "2",
+      "ticker": "TATAPOWER",
+      "name": "Tata Power Company Ltd.",
+      "price": 435.25,
+      "change": "+4.12%",
+      "marketCap": "₹1.39 Lakh Cr",
+      "peRatio": "34.8",
+      "divYield": "0.52%",
+      "roe": "12.4%"
+    },
+    {
+      "id": "3",
+      "ticker": "TATAMOTORS",
+      "name": "Tata Motors Ltd.",
+      "price": 960.4,
+      "change": "+2.11%",
+      "marketCap": "₹3.18 Lakh Cr",
+      "peRatio": "11.2",
+      "divYield": "0.60%",
+      "roe": "22.4%"
+    }
+  ],
+  "news": [
+    {
+      "id": "1",
+      "title": "PM Surya Ghar Yojana Boosts Tata Power Solar Pipeline",
+      "content": "Tata Power Solar registered an 18% YoY growth in its order book, reaching ₹15,400 crore, following the implementation of the PM Surya Ghar Muft Bijli Yojana.",
+      "author": "UperAI News Desk",
+      "date": "2026-06-24T08:27:31.574Z"
+    },
+    {
+      "id": "2",
+      "title": "Auto Sector Valuation Dispersion Widens in Q1 FY26",
+      "content": "Divergence between CVs and Two-Wheelers recovery maps to higher premium values for structural profiles like Bajaj Auto and Tata Motors.",
+      "author": "UperAI Analysts",
+      "date": "2026-06-24T08:27:31.574Z"
+    }
+  ],
+  "feedback": [
+    {
+      "id": "1",
+      "name": "Rohan Das",
+      "email": "rohan@gmail.com",
+      "type": "feedback",
+      "message": "Terminal is super fast and clean. Love the interactive chart!",
+      "date": "2026-06-24T08:27:31.574Z"
+    }
+  ],
+  "logs": [
+    {
+      "id": "1",
+      "email": "AviPro1122@gmail.com",
+      "action": "DATABASE_INITIALIZED",
+      "details": "Local JSON Database seeded and verified.",
+      "timestamp": "2026-06-24T08:27:31.574Z"
+    },
+    {
+      "id": "2",
+      "email": "AviPro1122@gmail.com",
+      "action": "USER_LOGIN",
+      "details": "Logged in via Google. Current Role: ADMIN",
+      "timestamp": "2026-06-24T08:28:55.704Z"
+    },
+    {
+      "id": "3",
+      "email": "AviPro1122@gmail.com",
+      "action": "USER_LOGIN",
+      "details": "Logged in via Google. Current Role: ADMIN",
+      "timestamp": "2026-06-24T08:29:48.846Z"
+    }
+  ]
+}
