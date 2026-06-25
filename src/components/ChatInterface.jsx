@@ -29,8 +29,6 @@ const suggestionPills = [
   { label: "Small Caps", query: "Analyze undervalued small-caps with earnings breakouts" }
 ];
 
-const GEMINI_API_KEY = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_GEMINI_API_KEY) || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY);
-
 export default function ChatInterface({ user, onRequireLogin, initialQuery, onClearInitialQuery }) {
   const [messages, setMessages] = useState(() => {
     try {
@@ -98,46 +96,6 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
     return () => clearTimeout(delayDebounceFn);
   }, [inputValue]);
 
-  // Secure local/Vercel proxy fetch to Gemini API (gemini-2.5-flash)
-  const queryUperAI = async (promptText, jsonMode = false) => {
-    const apiKey = GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("Secret API Key not configured");
-    }
-
-    const requestBody = {
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: promptText }]
-        }
-      ]
-    };
-
-    if (jsonMode) {
-      requestBody.generationConfig = {
-        responseMimeType: "application/json"
-      };
-    }
-
-    // /api-gemini maps to https://generativelanguage.googleapis.com locally (Vite Proxy) and in production (Vercel rewrite)
-    const res = await fetch(`/api-gemini/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`AI server returned ${res.status}: ${errText}`);
-    }
-
-    const data = await res.json();
-    // Parse content from candidates response schema
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  };
 
   // Fetch stock quotes from Yahoo Finance via CORS proxy
   const fetchAutocomplete = async (query) => {
@@ -170,25 +128,21 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
   const fetchAndRenderStock = async (symbol, displayName, rawStockInfo) => {
     setIsTyping(true);
     try {
-      const backendUrl = `/api/stock?symbol=${encodeURIComponent(symbol)}`;
+      const backendUrl = `/api/stock/analyze?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(displayName)}`;
       const res = await fetch(backendUrl);
       const json = await res.json();
       
       if (json && json.success && json.data) {
-        const quote = json.data;
+        const { quote, analysis } = json.data;
         const currentPrice = quote.price;
         const previousClose = currentPrice * 0.985; // Synthesize previous close (e.g. -1.5% from current)
         const change = currentPrice - previousClose;
         const changePct = 1.5; // +1.5%
-        
-        const high = currentPrice * 1.012;
-        const low = currentPrice * 0.982;
         const volume = quote.volume || 0;
         const fiftyTwoWeekHigh = currentPrice * 1.25;
         const fiftyTwoWeekLow = currentPrice * 0.85;
-        const exchangeName = "NSE/BSE Exchange Feed";
-        const longName = displayName;
-        
+        const positionPct = Math.round(((currentPrice - fiftyTwoWeekLow) / (fiftyTwoWeekHigh - fiftyTwoWeekLow)) * 100);
+
         // Synthesize chart points around the current price for 1 month
         const chartPoints = [];
         const baseValue = previousClose;
@@ -202,72 +156,15 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
           });
         }
 
-        // Percentage position relative to annual high/low bounds
-        const rangeDiff = fiftyTwoWeekHigh - fiftyTwoWeekLow;
-        const positionPct = rangeDiff !== 0 ? Math.round(((currentPrice - fiftyTwoWeekLow) / rangeDiff) * 100) : 50;
-
-        // Generate dynamic synthesis using UperAI engine if API key is active
-        let grokSummary = `Real-time tracking for **${longName} (${symbol})**. The stock is trading at **₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}**, representing a change of **${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%** in today's exchange session.`;
-        let technicalOverview = `The stock is currently trading at ₹${currentPrice.toFixed(2)}, which represents ${positionPct}% of its 52-week trading range. The previous market session closed at ₹${previousClose.toFixed(2)}. Today's intraday trading saw a high of ₹${high.toFixed(2)} and a low of ₹${low.toFixed(2)} with a cumulative trading volume of ${volume.toLocaleString('en-IN')} shares across the exchange floor.`;
-        let peRatio = "N/A";
-        let marketCap = "N/A";
-        let divYield = "N/A";
-        let roe = "N/A";
-        let aiSections = null;
-
-        if (GEMINI_API_KEY) {
-          try {
-            const prompt = `You are UperAI, an expert investment terminal for Indian equities.
-We are displaying the live stock details for ${longName} (${symbol}).
-Current Price: ₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}, Change: ${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%
-Day High/Low: ₹${low.toFixed(2)} - ₹${high.toFixed(2)}
-52-Week Range: ₹${fiftyTwoWeekLow.toFixed(2)} - ₹${fiftyTwoWeekHigh.toFixed(2)}
-
-Provide a structured JSON response with the following format:
-{
-  "summary": "Crisp 1-2 sentence analytical summary of today's momentum and key price target levels for the stock.",
-  "peRatio": "Current/estimated P/E ratio, e.g. '28.5x' or '34.2x'",
-  "marketCap": "Current market cap, e.g. '₹1.92 Lakh Cr' or '₹45,200 Cr'",
-  "divYield": "Dividend yield, e.g. '0.85%' or '1.2%'",
-  "roe": "ROE, e.g. '14.5%' or '22.1%'",
-  "technicalOverview": "Analytical technical breakdown of the price action relative to the 52-week bounds and volume (${volume.toLocaleString('en-IN')} shares). Use concise bullet points.",
-  "sections": [
-    {
-      "title": "Growth Catalysts & Moat",
-      "content": "• Direct growth drivers (with specific percentages/metrics where possible).\n• Key competitive advantages (moat) in the domestic market."
-    },
-    {
-      "title": "Key Valuation Risks",
-      "content": "• Specific headwinds or valuation premium concerns.\n• Industry macro risks (e.g. input price inflation, regulatory shifts)."
-    }
-  ]
-}
-
-CRITICAL RULES:
-1. Output MUST be extremely crisp, expert-level, and highly knowledgeable. Avoid generic fluff.
-2. Format the section content and technicalOverview using clean bullet points (•) and bold keywords for maximum readability.`;
-            
-            const apiRes = await queryUperAI(prompt, true);
-            if (apiRes) {
-              const cleanText = apiRes.trim().replace(/^```(json)?/, "").replace(/```$/, "").trim();
-              const parsed = JSON.parse(cleanText);
-              if (parsed.summary) grokSummary = parsed.summary;
-              if (parsed.technicalOverview) technicalOverview = parsed.technicalOverview;
-              if (parsed.peRatio) peRatio = parsed.peRatio;
-              if (parsed.marketCap) marketCap = parsed.marketCap;
-              if (parsed.divYield) divYield = parsed.divYield;
-              if (parsed.roe) roe = parsed.roe;
-              if (parsed.sections) aiSections = parsed.sections;
-            }
-          } catch (e) {
-            console.warn("Stock analysis query failed, using baseline:", e);
-          }
-        }
+        const peRatio = analysis.peRatio || "N/A";
+        const marketCap = analysis.marketCap || "N/A";
+        const divYield = analysis.divYield || "N/A";
+        const roe = analysis.roe || "N/A";
 
         const botMsg = {
           sender: 'bot',
           sources: ["NSE/BSE Exchange Feed", "UperAI Research Engine"],
-          summary: grokSummary,
+          summary: analysis.summary,
           metrics: [
             { label: "Current Price", value: `₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%` },
             { label: "Market Cap", value: marketCap !== "N/A" ? marketCap : "₹ -", change: `Vol: ${volume.toLocaleString('en-IN')}` },
@@ -275,15 +172,11 @@ CRITICAL RULES:
             { label: "52-Week Range", value: `₹${fiftyTwoWeekLow.toLocaleString('en-IN')} - ₹${fiftyTwoWeekHigh.toLocaleString('en-IN')}`, change: `Annual Position: ${positionPct}%` }
           ],
           chartData: chartPoints,
-          chartTitle: `${longName} Price trend (1-Month)`,
-          sections: aiSections || [
+          chartTitle: `${displayName} Price trend (1-Month)`,
+          sections: analysis.sections || [
             {
               title: "Market Momentum & Technical Summary",
-              content: technicalOverview
-            },
-            {
-              title: "Corporate Metadata & Security Rules",
-              content: `Registered Name: ${longName}\nListing Symbol: ${symbol}\nPrimary Exchange Board: ${exchangeName}\nCurrency Base: INR (Indian Rupee)\nCompliance Check: Trading follows Standard SEBI rules. Feed data is updated live during standard trading sessions.`
+              content: analysis.technicalOverview || ""
             }
           ]
         };
@@ -572,46 +465,41 @@ CRITICAL RULES:
       }
     };
 
-    const tryGeminiJSONGeneration = async () => {
-      if (!GEMINI_API_KEY) return null;
+    const callChatAPI = async (messageText) => {
       try {
-        const prompt = `You are UperAI, a conversation-first investment terminal built exclusively for Indian equities. 
-Provide a high-fidelity structured analysis for the query: "${text}".
-Return ONLY a valid JSON object (do not include markdown code block formatting like \`\`\`json, do not include any backticks or leading/trailing text) with the following schema:
-{
-  "summary": "Highly knowledgeable, crisp analytical summary under 75 words. Use bold terms for key metrics.",
-  "sources": ["List of 2-3 realistic sources, e.g. Q4 Concall Transcript, SEBI Disclosures"],
-  "metrics": [
-    {"label": "Metric Name", "value": "Metric Value", "change": "Change/Status (e.g. +1.5%, Low Debt, or N/A)"}
-  ],
-  "chartTitle": "Title for the chart representing trend",
-  "chartData": [
-    {"label": "Point Label (e.g. Q1, Q2 or Week 1)", "revenue": 100}
-  ],
-  "sections": [
-    {"title": "Section Title (e.g. Management Guidance, Capex & Margins, Concall Key Takeaways)", "content": "Bulleted takeaways using •, outlining guidance percentages, operational constraints, and clear management comments."}
-  ],
-  "tableData": [ // Optional: include ONLY if comparing stocks or showing multiple companies
-    {"name": "Stock Name", "ticker": "TICKER", "pe": "PE", "peg": "PEG", "roe": "ROE", "ebitda": "EBITDA"}
-  ]
-}
-
-CRITICAL RULES:
-1. Return ONLY the raw JSON object starting with '{' and ending with '}'.
-2. Provide at least 3-5 chart points in chartData with numerical values for Y-axis (revenue parameter).
-3. If the query asks about specific stock pricing, make up realistic prices/trends.
-4. Output MUST be extremely crisp, professional, and knowledgeable.
-5. If the query concerns an earnings call (concall), annual report, or results:
-   - Ensure the 'summary' and 'sections' focus strictly on concall highlights: management guidance, capital outlay (capex), volume metrics, margin pressures, and specific analyst Q&A takeaways.
-   - Use bullet points (•) and bold subtitles in sections for high readability.`;
-
-        const apiRes = await queryUperAI(prompt, true);
-        if (apiRes) {
-          const cleanText = apiRes.trim().replace(/^```(json)?/, "").replace(/```$/, "").trim();
-          return JSON.parse(cleanText);
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: messageText })
+        });
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
+        }
+        const json = await res.json();
+        if (json.success) {
+          if (json.type === 'text') {
+            return {
+              sender: 'bot',
+              sources: ["Gemini AI Engine", "UperAI Research"],
+              text: json.text
+            };
+          } else if (json.type === 'json' && json.data) {
+            return {
+              sender: 'bot',
+              sources: json.data.sources || ["Gemini AI Engine", "UperAI Research"],
+              summary: json.data.summary || "",
+              metrics: json.data.metrics || null,
+              chartData: json.data.chartData || null,
+              chartTitle: json.data.chartTitle || "",
+              tableData: json.data.tableData || null,
+              sections: json.data.sections || null
+            };
+          }
         }
       } catch (err) {
-        console.error("Gemini JSON Generation failed:", err);
+        console.error("Failed to fetch from chat API:", err);
       }
       return null;
     };
@@ -622,18 +510,8 @@ CRITICAL RULES:
       if (stock) {
         await fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
       } else {
-        const geminiRes = await tryGeminiJSONGeneration();
-        if (geminiRes) {
-          const botMsg = {
-            sender: 'bot',
-            sources: geminiRes.sources || ["UperAI Research Engine"],
-            summary: geminiRes.summary || "",
-            metrics: geminiRes.metrics || null,
-            chartData: geminiRes.chartData || null,
-            chartTitle: geminiRes.chartTitle || "",
-            tableData: geminiRes.tableData || null,
-            sections: geminiRes.sections || null
-          };
+        const botMsg = await callChatAPI(text);
+        if (botMsg) {
           setMessages(prev => [...prev, botMsg]);
           setIsTyping(false);
         } else {
@@ -643,18 +521,8 @@ CRITICAL RULES:
         }
       }
     } else {
-      const geminiRes = await tryGeminiJSONGeneration();
-      if (geminiRes) {
-        const botMsg = {
-          sender: 'bot',
-          sources: geminiRes.sources || ["UperAI Research Engine"],
-          summary: geminiRes.summary || "",
-          metrics: geminiRes.metrics || null,
-          chartData: geminiRes.chartData || null,
-          chartTitle: geminiRes.chartTitle || "",
-          tableData: geminiRes.tableData || null,
-          sections: geminiRes.sections || null
-        };
+      const botMsg = await callChatAPI(text);
+      if (botMsg) {
         setMessages(prev => [...prev, botMsg]);
         setIsTyping(false);
       } else {
@@ -788,10 +656,16 @@ CRITICAL RULES:
                       <span>Sources: {msg.sources?.join(', ')}</span>
                     </div>
 
-                    {/* Main text response summary */}
-                    <div className="insights-summary">
-                      {msg.summary}
-                    </div>
+                    {/* Main text response summary / plain text */}
+                    {msg.text ? (
+                      <div className="insights-summary" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                        {msg.text}
+                      </div>
+                    ) : (
+                      <div className="insights-summary">
+                        {msg.summary}
+                      </div>
+                    )}
 
                     {/* Dynamic Metrics Grid */}
                     {msg.metrics && (
