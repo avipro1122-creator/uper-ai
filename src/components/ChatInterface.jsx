@@ -433,7 +433,9 @@ CRITICAL RULES:
       presetKey = "auto_valuation";
     } else if (cleanQuery.includes("solar") || cleanQuery.includes("tata power") || cleanQuery.includes("policy")) {
       presetKey = "tata_power";
-    } else if (cleanQuery.includes("nifty") || cleanQuery.includes("sensex") || cleanQuery.includes("market")) {
+    } else if (cleanQuery.includes("sensex")) {
+      presetKey = "sensex";
+    } else if (cleanQuery.includes("nifty") || cleanQuery.includes("market")) {
       presetKey = "nifty";
     }
 
@@ -478,6 +480,43 @@ CRITICAL RULES:
             }
           } catch (err) {
             console.error("Failed to load live nifty for chat:", err);
+          }
+        } else if (presetKey === "sensex") {
+          try {
+            const res = await fetch('/api/market-indices');
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success) {
+                const liveSensex = data.sensex;
+                botMsg = {
+                  sender: 'bot',
+                  sources: ["BSE Index Feed", "UperAI Research Engine"],
+                  summary: `The **S&P BSE SENSEX** is trading at **₹${liveSensex.value.toLocaleString('en-IN')}** (${liveSensex.change >= 0 ? '+' : ''}${liveSensex.changePct.toFixed(2)}%). Institutional support provides strong market momentum.`,
+                  metrics: [
+                    { label: "BSE SENSEX", value: `₹${liveSensex.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, change: `${liveSensex.change >= 0 ? '+' : ''}${liveSensex.changePct.toFixed(2)}%` },
+                    { label: "India VIX", value: "13.4", change: "-4.2%" },
+                    { label: "DII Flows (MTD)", value: "₹22,400 Cr", change: "Net Buy" },
+                    { label: "FII Flows (MTD)", value: "₹18,900 Cr", change: "Net Sell" }
+                  ],
+                  chartTitle: "BSE Sensex Trend (1-Month)",
+                  chartData: [
+                    { label: "W1", revenue: Math.round(liveSensex.prevClose * 0.985) },
+                    { label: "W2", revenue: Math.round(liveSensex.prevClose * 0.99) },
+                    { label: "W3", revenue: Math.round(liveSensex.prevClose * 0.98) },
+                    { label: "W4", revenue: Math.round(liveSensex.prevClose * 1.005) },
+                    { label: "W5", revenue: Math.round(liveSensex.value) }
+                  ],
+                  sections: [
+                    {
+                      title: "Index Valuation Analysis",
+                      content: `The S&P BSE SENSEX is currently trading at ₹${liveSensex.value.toLocaleString('en-IN')} relative to the previous close of ₹${liveSensex.prevClose.toLocaleString('en-IN')}. Daily High: ₹${liveSensex.high.toLocaleString('en-IN')}, Daily Low: ₹${liveSensex.low.toLocaleString('en-IN')}. Support is established at ₹${Math.round(liveSensex.value * 0.985).toLocaleString('en-IN')}, while resistance lies at ₹${Math.round(liveSensex.value * 1.015).toLocaleString('en-IN')}.`
+                    }
+                  ]
+                };
+              }
+            }
+          } catch (err) {
+            console.error("Failed to load live sensex for chat:", err);
           }
         }
 
