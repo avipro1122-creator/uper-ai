@@ -706,7 +706,7 @@ CRITICAL RULES:
                     className="centerpiece-input"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Search stock quotes or ask financial questions (e.g. INFY, TATAMOTORS, RELIANCE)..."
+                    placeholder="Read Concall in seconds"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSend();
                     }}
