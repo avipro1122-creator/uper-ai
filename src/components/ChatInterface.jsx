@@ -446,7 +446,7 @@ CRITICAL RULES:
         
         if (presetKey === "nifty") {
           try {
-            const res = await fetch('/api/market-indices');
+            const res = await fetch(`/api/market-indices?_=${Date.now()}`);
             if (res.ok) {
               const data = await res.json();
               if (data.success) {
@@ -483,7 +483,7 @@ CRITICAL RULES:
           }
         } else if (presetKey === "sensex") {
           try {
-            const res = await fetch('/api/market-indices');
+            const res = await fetch(`/api/market-indices?_=${Date.now()}`);
             if (res.ok) {
               const data = await res.json();
               if (data.success) {

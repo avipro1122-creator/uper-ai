@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 interface IndexData {
   value: number;
   change: number;
@@ -152,5 +154,11 @@ export async function GET() {
     sensex: sensexData || sensexFallback,
     marketOpen: checkIndianMarketStatus(),
     lastUpdated: formatISTTime()
+  }, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    }
   });
 }

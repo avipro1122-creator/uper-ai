@@ -81,7 +81,7 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
 
   const updateIndices = async () => {
     try {
-      const res = await fetch('/api/market-indices');
+      const res = await fetch(`/api/market-indices?_=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         if (data.success) {

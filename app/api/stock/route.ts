@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { fetchUpstoxQuote } from '../../../lib/upstox';
 import { supabase } from '../../../lib/supabase';
 import { checkRateLimit } from '../../../lib/rateLimit';
@@ -68,13 +70,16 @@ export async function GET(request: Request) {
       }
     }
 
-    // 6. Return response with rate limit metadata headers
+    // 6. Return response with rate limit metadata headers and disable caching
     const headers = new Headers();
     if (rateLimitStatus) {
       headers.set('X-RateLimit-Limit', String(rateLimitStatus.limit));
       headers.set('X-RateLimit-Remaining', String(rateLimitStatus.remaining));
       headers.set('X-RateLimit-Reset', rateLimitStatus.reset.toISOString());
     }
+    headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    headers.set('Pragma', 'no-cache');
+    headers.set('Expires', '0');
 
     return NextResponse.json(
       { success: true, data: quote },
