@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Activity, Search, ArrowRight, Sparkles, TrendingUp, Compass, 
   FileText, Database, Layers, Award, Zap, Terminal, Gauge, Cpu, 
-  Menu, X, Check, Shield, BarChart3, HelpCircle, Users, BookOpen
+  Menu, X, Check, Shield, BarChart3, HelpCircle, Users, BookOpen,
+  RefreshCw
 } from 'lucide-react';
 import ChatInterface from './ChatInterface';
 
@@ -19,6 +20,7 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
   const [nifty, setNifty] = useState({ value: 23530.15, change: 98.45, changePct: 0.42, tickDir: '' });
   const [sensex, setSensex] = useState({ value: 77215.40, change: 292.10, changePct: 0.38, tickDir: '' });
   const [lastUpdated, setLastUpdated] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Refs for smooth scroll
   const featuresRef = useRef(null);
@@ -77,43 +79,54 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
     fetchStats();
   }, []);
 
+  const updateIndices = async () => {
+    try {
+      const res = await fetch('/api/market-indices');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setMarketOpen(data.marketOpen);
+          setLastUpdated(data.lastUpdated);
+
+          setNifty(prev => {
+            const tickDir = data.nifty.value > prev.value ? 'up' : data.nifty.value < prev.value ? 'down' : '';
+            return {
+              value: data.nifty.value,
+              change: data.nifty.change,
+              changePct: data.nifty.changePct,
+              tickDir
+            };
+          });
+
+          setSensex(prev => {
+            const tickDir = data.sensex.value > prev.value ? 'up' : data.sensex.value < prev.value ? 'down' : '';
+            return {
+              value: data.sensex.value,
+              change: data.sensex.change,
+              changePct: data.sensex.changePct,
+              tickDir
+            };
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load live market indices:", err);
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    const startTime = Date.now();
+    await updateIndices();
+    const elapsedTime = Date.now() - startTime;
+    const remainingTime = Math.max(0, 800 - elapsedTime);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, remainingTime);
+  };
+
   // Poll live market indices
   useEffect(() => {
-    const updateIndices = async () => {
-      try {
-        const res = await fetch('/api/market-indices');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            setMarketOpen(data.marketOpen);
-            setLastUpdated(data.lastUpdated);
-
-            setNifty(prev => {
-              const tickDir = data.nifty.value > prev.value ? 'up' : data.nifty.value < prev.value ? 'down' : '';
-              return {
-                value: data.nifty.value,
-                change: data.nifty.change,
-                changePct: data.nifty.changePct,
-                tickDir
-              };
-            });
-
-            setSensex(prev => {
-              const tickDir = data.sensex.value > prev.value ? 'up' : data.sensex.value < prev.value ? 'down' : '';
-              return {
-                value: data.sensex.value,
-                change: data.sensex.change,
-                changePct: data.sensex.changePct,
-                tickDir
-              };
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load live market indices:", err);
-      }
-    };
-
     // Initial update
     updateIndices();
 
@@ -371,6 +384,15 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         <div className="stats-footer-note">
           <div className="live-pulse" />
           <span>Last Updated: <strong style={{ color: 'var(--text-primary)' }}>{lastUpdated || 'Loading...'}</strong></span>
+          <button 
+            onClick={handleManualRefresh}
+            className="refresh-btn"
+            disabled={isRefreshing}
+            title="Refresh indices"
+          >
+            <RefreshCw size={12} className={isRefreshing ? 'spin-animation' : ''} />
+            <span>Refresh</span>
+          </button>
         </div>
       </section>
 

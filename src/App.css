@@ -3212,11 +3212,13 @@ body {
 .stats-footer-note {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
   margin-top: 24px;
   font-size: 0.8rem;
   color: var(--text-secondary);
+  padding: 0 16px;
 }
 
 .live-pulse {
@@ -3779,4 +3781,47 @@ body {
     grid-column: span 1;
   }
 }
+
+/* Refresh button styles and spin animation */
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 201, 167, 0.1);
+  border: 1px solid rgba(0, 201, 167, 0.2);
+  color: var(--accent-color);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: rgba(0, 201, 167, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(0, 201, 167, 0.2);
+}
+
+.refresh-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 
