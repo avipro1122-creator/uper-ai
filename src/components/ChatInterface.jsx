@@ -14,7 +14,8 @@ import {
   Clock,
   Sparkles,
   ArrowUpRight,
-  TrendingDown
+  TrendingDown,
+  Trash2
 } from 'lucide-react';
 import { getResponse } from '../data/mockData';
 import InteractiveChart from './InteractiveChart';
@@ -691,6 +692,57 @@ CRITICAL RULES:
     <div className="chat-interface-grid" style={{ zIndex: 1 }}>
       {/* Middle Workspace: Chat history & input centerpiece */}
       <div className="main-content-column">
+        {messages.length > 0 && (
+          <div className="chat-header-bar" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 24px',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'rgba(17, 24, 39, 0.7)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            zIndex: 10
+          }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={12} style={{ color: 'var(--accent-color)' }} />
+              Equity Research Chat
+            </span>
+            <button 
+              onClick={() => {
+                if (window.confirm("Clear all messages and start a new session?")) {
+                  setMessages([]);
+                  localStorage.removeItem('uperai_chat_messages');
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                color: 'var(--color-error)',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontWeight: 500
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.borderColor = 'var(--color-error)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+              }}
+            >
+              <Trash2 size={12} />
+              <span>Reset Chat</span>
+            </button>
+          </div>
+        )}
         
         {/* Message Space */}
         <div className="chat-area-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
