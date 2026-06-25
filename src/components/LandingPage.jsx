@@ -278,7 +278,12 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           </div>
 
           {/* Card 2: Nifty 50 */}
-          <div className={`stats-card glass-card ticker-card ${nifty.tickDir === 'up' ? 'flash-up' : nifty.tickDir === 'down' ? 'flash-down' : ''}`}>
+          <div 
+            className={`stats-card glass-card ticker-card ${nifty.tickDir === 'up' ? 'flash-up' : nifty.tickDir === 'down' ? 'flash-down' : ''}`}
+            onClick={() => window.open('https://www.nseindia.com/market-data/live-equity-market', '_blank')}
+            style={{ cursor: 'pointer' }}
+            title="Click to view Nifty 50 live page"
+          >
             <div className="stats-card-header">
               <span className="stats-card-title">📊 NIFTY 50</span>
               <span className={`ticker-indicator-pill ${nifty.change >= 0 ? 'up' : 'down'}`}>
@@ -294,7 +299,12 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           </div>
 
           {/* Card 3: BSE Sensex */}
-          <div className={`stats-card glass-card ticker-card ${sensex.tickDir === 'up' ? 'flash-up' : sensex.tickDir === 'down' ? 'flash-down' : ''}`}>
+          <div 
+            className={`stats-card glass-card ticker-card ${sensex.tickDir === 'up' ? 'flash-up' : sensex.tickDir === 'down' ? 'flash-down' : ''}`}
+            onClick={() => window.open('https://www.bseindia.com/sensex/code/16', '_blank')}
+            style={{ cursor: 'pointer' }}
+            title="Click to view BSE Sensex live page"
+          >
             <div className="stats-card-header">
               <span className="stats-card-title">📊 BSE SENSEX</span>
               <span className={`ticker-indicator-pill ${sensex.change >= 0 ? 'up' : 'down'}`}>

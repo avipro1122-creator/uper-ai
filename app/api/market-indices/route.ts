@@ -71,11 +71,62 @@ async function fetchIndexFromYahoo(symbol: string): Promise<IndexData | null> {
   }
 }
 
+async function fetchSensexFromBseIndia(): Promise<IndexData | null> {
+  try {
+    const url = 'https://api.bseindia.com/RealTimeBseIndiaAPI/api/GetSensexData/w';
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.bseindia.com/',
+      },
+      next: { revalidate: 5 } // Cache for 5 seconds
+    });
+    
+    if (!res.ok) {
+      console.error(`BSE India API error for Sensex: ${res.statusText}`);
+      return null;
+    }
+    
+    const data = await res.json();
+    const item = data?.[0];
+    if (!item) return null;
+    
+    const parseVal = (v: string) => parseFloat(v.replace(/,/g, ''));
+    const value = parseVal(item.ltp);
+    const change = parseVal(item.chg);
+    const changePct = parseVal(item.perchg);
+    const high = parseVal(item.High ?? item.ltp);
+    const low = parseVal(item.Low ?? item.ltp);
+    const prevClose = parseVal(item.Prev_Close ?? item.ltp);
+    
+    if (isNaN(value)) return null;
+    
+    return {
+      value,
+      change,
+      changePct,
+      high,
+      low,
+      prevClose
+    };
+  } catch (err) {
+    console.error("Failed to fetch Sensex from BSE India API:", err);
+    return null;
+  }
+}
+
 export async function GET() {
-  const [niftyData, sensexData] = await Promise.all([
+  // Fetch Nifty from Yahoo Finance, and Sensex from BSE API (falling back to Yahoo Finance if BSE fails)
+  const [niftyData, sensexDataRaw] = await Promise.all([
     fetchIndexFromYahoo('^NSEI'),
-    fetchIndexFromYahoo('^BSESN')
+    fetchSensexFromBseIndia()
   ]);
+
+  let sensexData = sensexDataRaw;
+  if (!sensexData) {
+    console.warn("Sensex from BSE API failed, falling back to Yahoo Finance");
+    sensexData = await fetchIndexFromYahoo('^BSESN');
+  }
   
   const niftyFallback: IndexData = {
     value: 23530.15,
