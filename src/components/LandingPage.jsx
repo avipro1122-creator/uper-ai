@@ -550,7 +550,7 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
             <div className="footer-link-group">
               <h4>Connect</h4>
               <a href="https://github.com/avipro1122-creator/uper-ai" target="_blank" rel="noreferrer">GitHub Repo</a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn Page</a>
+              <a href="https://www.linkedin.com/in/avanish-rai-proshot/" target="_blank" rel="noreferrer">LinkedIn Page</a>
               <a href="https://twitter.com" target="_blank" rel="noreferrer">Twitter / X</a>
             </div>
           </div>
