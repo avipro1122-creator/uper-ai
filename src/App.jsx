@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Cpu, LogOut, ShieldCheck, ShieldAlert, Menu, X, Compass, FileText, Database, Activity } from 'lucide-react';
 import ChatInterface from './components/ChatInterface';
 import SLMVision from './components/SLMVision';
+import ConcallTerminal from './components/ConcallTerminal';
 import Auth from './components/Auth';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
@@ -67,6 +68,8 @@ function App() {
       } else {
         setActiveView('auth');
       }
+    } else if (path === '/concall') {
+      setActiveView('concall');
     } else if (path === '/chat') {
       setActiveView('chat');
     } else {
@@ -251,6 +254,13 @@ function App() {
               <FileText size={16} />
               <span>SLM Roadmap</span>
             </button>
+            <button 
+              className={`nav-item ${activeView === 'concall' ? 'active' : ''}`}
+              onClick={() => navigate('concall', '/concall')}
+            >
+              <Activity size={16} style={{ color: activeView === 'concall' ? 'var(--accent-color)' : 'inherit' }} />
+              <span>Concall AI</span>
+            </button>
             
             {user?.email?.toLowerCase() === 'avipro1122@gmail.com' && (
               <button 
@@ -336,6 +346,11 @@ function App() {
               onRequireLogin={() => navigate('auth', '/login?limit=2')} 
               initialQuery={landingSearchQuery}
               onClearInitialQuery={() => setLandingSearchQuery('')}
+            />
+          ) : activeView === 'concall' ? (
+            <ConcallTerminal 
+              user={user} 
+              onRequireLogin={() => navigate('auth', '/login')} 
             />
           ) : (
             <SLMVision />

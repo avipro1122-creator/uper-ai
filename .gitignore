@@ -11,7 +11,14 @@ dist/
 dist-ssr/
 build/
 out/
+.next/
 .vercel
+scratch_*.js
+*.js.map
+ai-gateway-demo/
+.agents/
+
+
 
 # Environment Variables & Secrets
 .env
