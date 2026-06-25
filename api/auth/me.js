@@ -1,4 +1,4 @@
-const { getSessionUser } = require('../utils/auth');
+const { getSessionUser } = require('../_utils/auth');
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {

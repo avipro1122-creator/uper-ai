@@ -1,5 +1,5 @@
-const { verifyGoogleToken, signJWT } = require('../utils/auth');
-const { readData, writeData } = require('../utils/db');
+const { verifyGoogleToken, signJWT } = require('../_utils/auth');
+const { readData, writeData } = require('../_utils/db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {

@@ -1,8 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
-// Target file path for the local development database
-const DB_FILE = path.join(process.cwd(), 'database.json');
+// Determine the writable database path. In Vercel serverless environments, the local filesystem is read-only
+// except for the '/tmp' directory.
+const getDbFilePath = () => {
+  if (process.env.VERCEL === '1' || process.env.NOW_BUILDER === '1') {
+    return path.join('/tmp', 'database.json');
+  }
+  return path.join(process.cwd(), 'database.json');
+};
+
+const DB_FILE = getDbFilePath();
 
 // Helper to initialize and seed database if it doesn't exist
 const initDb = () => {
@@ -37,7 +45,12 @@ const initDb = () => {
         { id: "1", email: "AviPro1122@gmail.com", action: "DATABASE_INITIALIZED", details: "Local JSON Database seeded and verified.", timestamp: new Date().toISOString() }
       ]
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
+    try {
+      fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
+      fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
+    } catch (error) {
+      console.error("Failed to initialize JSON database file:", error);
+    }
   }
 };
 
@@ -56,6 +69,7 @@ const readData = () => {
 // Write database contents
 const writeData = (data) => {
   try {
+    fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
     return true;
   } catch (error) {

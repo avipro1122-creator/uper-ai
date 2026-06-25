@@ -79,46 +79,46 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
 
   // Poll live market indices
   useEffect(() => {
-    const updateIndices = () => {
-      const isOpen = checkIndianMarketStatus();
-      setMarketOpen(isOpen);
-      setLastUpdated(formatISTTime());
+    const updateIndices = async () => {
+      try {
+        const res = await fetch('/api/market-indices');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setMarketOpen(data.marketOpen);
+            setLastUpdated(data.lastUpdated);
 
-      if (isOpen) {
-        // Random walk changes during trading hours
-        setNifty(prev => {
-          const tick = (Math.random() - 0.48) * 12; // positive bias
-          const newValue = Math.max(22000, parseFloat((prev.value + tick).toFixed(2)));
-          const change = parseFloat((newValue - 23431.70).toFixed(2));
-          const changePct = parseFloat(((change / 23431.70) * 100).toFixed(2));
-          return {
-            value: newValue,
-            change,
-            changePct,
-            tickDir: tick >= 0 ? 'up' : 'down'
-          };
-        });
+            setNifty(prev => {
+              const tickDir = data.nifty.value > prev.value ? 'up' : data.nifty.value < prev.value ? 'down' : '';
+              return {
+                value: data.nifty.value,
+                change: data.nifty.change,
+                changePct: data.nifty.changePct,
+                tickDir
+              };
+            });
 
-        setSensex(prev => {
-          const tick = (Math.random() - 0.48) * 38; // positive bias
-          const newValue = Math.max(72000, parseFloat((prev.value + tick).toFixed(2)));
-          const change = parseFloat((newValue - 76923.30).toFixed(2));
-          const changePct = parseFloat(((change / 76923.30) * 100).toFixed(2));
-          return {
-            value: newValue,
-            change,
-            changePct,
-            tickDir: tick >= 0 ? 'up' : 'down'
-          };
-        });
+            setSensex(prev => {
+              const tickDir = data.sensex.value > prev.value ? 'up' : data.sensex.value < prev.value ? 'down' : '';
+              return {
+                value: data.sensex.value,
+                change: data.sensex.change,
+                changePct: data.sensex.changePct,
+                tickDir
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load live market indices:", err);
       }
     };
 
     // Initial update
     updateIndices();
 
-    // Poll every 5 seconds
-    const interval = setInterval(updateIndices, 5000);
+    // Poll every 10 seconds
+    const interval = setInterval(updateIndices, 10000);
     return () => clearInterval(interval);
   }, []);
 

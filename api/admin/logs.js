@@ -1,13 +1,10 @@
-const { getSessionUser } = require('../utils/auth');
-const { readData } = require('../utils/db');
+const { getSessionUser } = require('../_utils/auth');
+const { readData } = require('../_utils/db');
 
 module.exports = async (req, res) => {
   // Authentication & Authorization check
   const user = getSessionUser(req);
-  if (!user) {
-    return res.status(401).json({ error: "Unauthorized. Please sign in." });
-  }
-  if (user.role !== 'ADMIN') {
+  if (!user || user.email.toLowerCase() !== 'avipro1122@gmail.com') {
     return res.status(403).json({ error: "Forbidden. Admin privileges required." });
   }
 

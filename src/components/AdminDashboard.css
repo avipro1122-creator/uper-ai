@@ -10,7 +10,7 @@
 
 .admin-sidebar {
   width: 220px;
-  background: rgba(10, 10, 10, 0.4);
+  background: #0D1321;
   border-right: 1px solid var(--border-subtle);
   backdrop-filter: blur(16px);
   padding: 20px 10px;
@@ -98,7 +98,7 @@
 }
 
 .stat-card {
-  background: rgba(15, 15, 15, 0.4);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 20px;
@@ -149,7 +149,7 @@
 
 /* General Card */
 .admin-card {
-  background: rgba(15, 15, 15, 0.3);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 24px;
@@ -172,7 +172,7 @@
   overflow-x: auto;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
-  background: rgba(5, 5, 5, 0.2);
+  background: var(--bg-card);
 }
 
 .admin-table {
@@ -323,7 +323,7 @@
 .admin-form-card {
   width: 100%;
   max-width: 520px;
-  background: #0F0F0F;
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 28px;
@@ -504,4 +504,107 @@
   0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 90, 90, 0.2)); }
   50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(255, 90, 90, 0.6)); }
   100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 90, 90, 0.2)); }
+}
+
+/* ==========================================
+   Mobile Responsiveness (Media Queries)
+   ========================================== */
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 10px;
+    gap: 12px;
+    align-items: center;
+    white-space: nowrap;
+    background: rgba(13, 19, 33, 0.98);
+    scrollbar-width: none; /* Hide scrollbar on Firefox */
+  }
+  
+  .admin-sidebar::-webkit-scrollbar {
+    display: none; /* Hide scrollbar on Chrome/Safari */
+  }
+  
+  .admin-sidebar-title {
+    display: none;
+  }
+  
+  .admin-tab-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .admin-content {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .admin-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .admin-section-title {
+    font-size: 1.2rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .stat-value {
+    font-size: 1.3rem;
+  }
+  
+  .admin-card {
+    padding: 16px;
+  }
+  
+  .admin-card-title {
+    font-size: 0.95rem;
+  }
+  
+  /* Form Modal */
+  .admin-form-card {
+    width: 95%;
+    padding: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .form-full-row {
+    grid-column: span 1;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
 }
