@@ -50,8 +50,19 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
     }
   });
 
-  // Report Section Navigation
-  const [activeSection, setActiveSection] = useState('summary');
+  // Report Section Accordion state
+  const [openSections, setOpenSections] = useState({
+    summary: true,
+    commentary: false,
+    guidance: false
+  });
+
+  const toggleSection = (sectionId) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   const dropdownRef = useRef(null);
 
@@ -700,45 +711,27 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
                 ))}
               </div>
 
-              {/* Report Main Content Grid */}
-              <div className="tw-grid tw-grid-cols-1 lg:tw-grid-cols-4 tw-gap-6 tw-items-start">
+              {/* Report Main Content - Accordions Stacked in Front */}
+              <div className="tw-w-full tw-flex tw-flex-col tw-gap-4">
                 
-                {/* Left Report Index Navigation (Sticky) - Hidden on print */}
-                <div className="lg:tw-col-span-1 tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-rounded-lg tw-p-2 tw-sticky tw-top-6 print-hidden">
-                  <div className="tw-px-3 tw-py-2 tw-text-[10px] tw-text-bloomberg-mutedText tw-font-bold tw-tracking-wider tw-border-b tw-border-bloomberg-border tw-mb-2">
-                    REPORT INDEX
-                  </div>
-                  <div className="tw-flex tw-flex-col tw-gap-1">
-                    {[
-                      { id: 'summary', label: 'Executive Summary', icon: <FileText size={14} /> },
-                      { id: 'commentary', label: 'Management Commentary', icon: <Quote size={14} /> },
-                      { id: 'guidance', label: 'Future Guidance', icon: <Briefcase size={14} /> }
-                    ].map((sec) => (
-                      <button
-                        key={sec.id}
-                        onClick={() => setActiveSection(sec.id)}
-                        className={`tw-w-full tw-flex tw-items-center tw-gap-2.5 tw-px-3 tw-py-2.5 tw-rounded-md tw-text-xs tw-text-left tw-transition-all ${
-                          activeSection === sec.id
-                            ? 'tw-bg-bloomberg-border tw-text-white tw-font-semibold tw-border-l-2 tw-border-bloomberg-accent'
-                            : 'tw-text-bloomberg-mutedText hover:tw-text-white hover:tw-bg-bloomberg-border/40'
-                        }`}
-                      >
-                        {sec.icon}
-                        <span>{sec.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right Report Details Panel */}
-                <div className="lg:tw-col-span-3 tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-rounded-lg tw-p-6 tw-min-h-[500px] print-card">
-                  
-                  {/* Executive Summary Section */}
-                  {activeSection === 'summary' && (
-                    <div className="tw-flex tw-flex-col tw-gap-4">
-                      <h3 className="tw-text-base tw-font-bold tw-text-white tw-border-b tw-border-bloomberg-border tw-pb-2 print-text-dark">
-                        Executive Summary
-                      </h3>
+                {/* Executive Summary Accordion */}
+                <div className="tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-rounded-lg tw-overflow-hidden print-card">
+                  <button 
+                    onClick={() => toggleSection('summary')}
+                    className="tw-w-full tw-flex tw-items-center tw-justify-between tw-px-5 tw-py-4 tw-bg-bloomberg-border/20 tw-text-sm tw-font-bold tw-text-white tw-transition-colors hover:tw-bg-bloomberg-border/30 print-hidden"
+                  >
+                    <span className="tw-flex tw-items-center tw-gap-2">
+                      <FileText size={16} className="tw-text-bloomberg-accent" />
+                      Executive Summary
+                    </span>
+                    {openSections.summary ? <ChevronRight size={16} className="tw-transform tw-rotate-90 tw-transition-transform" /> : <ChevronRight size={16} className="tw-transition-transform" />}
+                  </button>
+                  {/* Keep title visible for printing */}
+                  <h3 className="tw-hidden print:tw-block tw-text-base tw-font-bold tw-text-slate-900 tw-px-5 tw-pt-4 tw-border-b tw-pb-2">
+                    Executive Summary
+                  </h3>
+                  {openSections.summary && (
+                    <div className="tw-p-5 tw-flex tw-flex-col tw-gap-4">
                       <ul className="tw-list-disc tw-pl-5 tw-flex tw-flex-col tw-gap-2">
                         {analysisData.executiveSummary.bullets.map((bullet, idx) => (
                           <li key={idx} className="tw-text-sm tw-leading-relaxed print-text-dark">{bullet}</li>
@@ -754,14 +747,25 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
                       </div>
                     </div>
                   )}
+                </div>
 
-                  {/* Management Commentary Section */}
-                  {activeSection === 'commentary' && (
-                    <div className="tw-flex tw-flex-col tw-gap-6">
-                      <h3 className="tw-text-base tw-font-bold tw-text-white tw-border-b tw-border-bloomberg-border tw-pb-2 print-text-dark">
-                        Management Commentary
-                      </h3>
-
+                {/* Management Commentary Accordion */}
+                <div className="tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-rounded-lg tw-overflow-hidden print-card">
+                  <button 
+                    onClick={() => toggleSection('commentary')}
+                    className="tw-w-full tw-flex tw-items-center tw-justify-between tw-px-5 tw-py-4 tw-bg-bloomberg-border/20 tw-text-sm tw-font-bold tw-text-white tw-transition-colors hover:tw-bg-bloomberg-border/30 print-hidden"
+                  >
+                    <span className="tw-flex tw-items-center tw-gap-2">
+                      <Quote size={16} className="tw-text-bloomberg-accent" />
+                      Management Commentary
+                    </span>
+                    {openSections.commentary ? <ChevronRight size={16} className="tw-transform tw-rotate-90 tw-transition-transform" /> : <ChevronRight size={16} className="tw-transition-transform" />}
+                  </button>
+                  <h3 className="tw-hidden print:tw-block tw-text-base tw-font-bold tw-text-slate-900 tw-px-5 tw-pt-4 tw-border-b tw-pb-2">
+                    Management Commentary
+                  </h3>
+                  {openSections.commentary && (
+                    <div className="tw-p-5 tw-flex tw-flex-col tw-gap-6">
                       {[
                         { label: 'Business Updates & Pivots', data: analysisData.managementCommentary.businessUpdates },
                         { label: 'Capacity Expansion & Execution', data: analysisData.managementCommentary.capacityExpansion },
@@ -796,14 +800,25 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
                       </div>
                     </div>
                   )}
+                </div>
 
-                  {/* Future Guidance Section */}
-                  {activeSection === 'guidance' && (
-                    <div className="tw-flex tw-flex-col tw-gap-4">
-                      <h3 className="tw-text-base tw-font-bold tw-text-white tw-border-b tw-border-bloomberg-border tw-pb-2 print-text-dark">
-                        Future Guidance & Capital Outlook
-                      </h3>
-
+                {/* Future Guidance Accordion */}
+                <div className="tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-rounded-lg tw-overflow-hidden print-card">
+                  <button 
+                    onClick={() => toggleSection('guidance')}
+                    className="tw-w-full tw-flex tw-items-center tw-justify-between tw-px-5 tw-py-4 tw-bg-bloomberg-border/20 tw-text-sm tw-font-bold tw-text-white tw-transition-colors hover:tw-bg-bloomberg-border/30 print-hidden"
+                  >
+                    <span className="tw-flex tw-items-center tw-gap-2">
+                      <Briefcase size={16} className="tw-text-bloomberg-accent" />
+                      Future Guidance
+                    </span>
+                    {openSections.guidance ? <ChevronRight size={16} className="tw-transform tw-rotate-90 tw-transition-transform" /> : <ChevronRight size={16} className="tw-transition-transform" />}
+                  </button>
+                  <h3 className="tw-hidden print:tw-block tw-text-base tw-font-bold tw-text-slate-900 tw-px-5 tw-pt-4 tw-border-b tw-pb-2">
+                    Future Guidance
+                  </h3>
+                  {openSections.guidance && (
+                    <div className="tw-p-5 tw-flex tw-flex-col tw-gap-4">
                       <div className="tw-bg-bloomberg-bg/60 tw-border tw-border-bloomberg-border tw-p-4 tw-rounded-md print-card">
                         <h4 className="tw-text-xs tw-font-bold tw-text-white tw-uppercase tw-mb-2 print-text-dark">Revenue Outlook</h4>
                         <p className="tw-text-xs tw-leading-relaxed print-text-dark">{analysisData.futureGuidance.revenueGuidance}</p>
@@ -836,8 +851,8 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
                       </div>
                     </div>
                   )}
-
                 </div>
+
               </div>
 
             </div>
