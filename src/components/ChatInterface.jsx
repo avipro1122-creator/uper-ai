@@ -20,6 +20,100 @@ import {
 import { getResponse } from '../data/mockData';
 import InteractiveChart from './InteractiveChart';
 
+const LOCAL_TICKERS = {
+  "ADANIENT": { symbol: "ADANIENT", name: "Adani Enterprises Ltd" },
+  "ADANIPORTS": { symbol: "ADANIPORTS", name: "Adani Ports & Special Economic Zone Ltd" },
+  "AXISBANK": { symbol: "AXISBANK", name: "Axis Bank Ltd" },
+  "BAJAJ-AUTO": { symbol: "BAJAJ-AUTO", name: "Bajaj Auto Ltd" },
+  "BAJFINANCE": { symbol: "BAJFINANCE", name: "Bajaj Finance Ltd" },
+  "BAJAJFINSV": { symbol: "BAJAJFINSV", name: "Bajaj Finserv Ltd" },
+  "BEL": { symbol: "BEL", name: "Bharat Electronics Ltd" },
+  "BHARTIARTL": { symbol: "BHARTIARTL", name: "Bharti Airtel Limited" },
+  "COALINDIA": { symbol: "COALINDIA", name: "Coal India Ltd" },
+  "HCLTECH": { symbol: "HCLTECH", name: "HCL Technologies Ltd" },
+  "HDFCBANK": { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
+  "HINDUNILVR": { symbol: "HINDUNILVR", name: "Hindustan Unilever Ltd" },
+  "ICICIBANK": { symbol: "ICICIBANK", name: "ICICI Bank Ltd" },
+  "INFY": { symbol: "INFY", name: "Infosys Ltd" },
+  "JSWSTEEL": { symbol: "JSWSTEEL", name: "JSW Steel Ltd" },
+  "KOTAKBANK": { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank Ltd" },
+  "LT": { symbol: "LT", name: "Larsen & Toubro Ltd" },
+  "M&M": { symbol: "M&M", name: "Mahindra & Mahindra Ltd" },
+  "MARUTI": { symbol: "MARUTI", name: "Maruti Suzuki India Ltd" },
+  "NTPC": { symbol: "NTPC", name: "NTPC Ltd" },
+  "NESTLEIND": { symbol: "NESTLEIND", name: "Nestle India Ltd" },
+  "ONGC": { symbol: "ONGC", name: "Oil & Natural Gas Corpn Ltd" },
+  "RELIANCE": { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+  "RIL": { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+  "SBIN": { symbol: "SBIN", name: "State Bank of India Limited" },
+  "SUNPHARMA": { symbol: "SUNPHARMA", name: "Sun Pharmaceutical Industries Ltd" },
+  "TCS": { symbol: "TCS", name: "Tata Consultancy Services limited" },
+  "TITAN": { symbol: "TITAN", name: "Titan Company Ltd" },
+  "ULTRACEMCO": { symbol: "ULTRACEMCO", name: "UltraTech Cement Ltd" },
+  "TATAPOWER": { symbol: "TATAPOWER", name: "Tata Power Company Ltd." },
+  "TATAMOTORS": { symbol: "TATAMOTORS", name: "Tata Motors Ltd." }
+};
+
+const LOCAL_MAPPINGS = [
+  { keywords: ["adani enterprises", "adani enterprise", "adanient", "ael"], symbol: "ADANIENT" },
+  { keywords: ["adani ports", "adani port", "ports & special", "ports", "adaniports"], symbol: "ADANIPORTS" },
+  { keywords: ["reliance", "ril"], symbol: "RELIANCE" },
+  { keywords: ["tcs", "tata consultancy", "tata consultancy services"], symbol: "TCS" },
+  { keywords: ["tata power", "tatapower"], symbol: "TATAPOWER" },
+  { keywords: ["tata motors", "tatamotors"], symbol: "TATAMOTORS" },
+  { keywords: ["axis bank", "axisbank", "axis"], symbol: "AXISBANK" },
+  { keywords: ["hdfc bank", "hdfcbank", "hdfc"], symbol: "HDFCBANK" },
+  { keywords: ["icici bank", "icicibank", "icici"], symbol: "ICICIBANK" },
+  { keywords: ["sbi", "sbin", "state bank of india", "state bank"], symbol: "SBIN" },
+  { keywords: ["infosys", "infy"], symbol: "INFY" },
+  { keywords: ["hcl", "hcltech", "hcl technologies"], symbol: "HCLTECH" },
+  { keywords: ["maruti", "suzuki", "maruti suzuki"], symbol: "MARUTI" },
+  { keywords: ["mahindra", "m&m", "mahindra & mahindra"], symbol: "M&M" },
+  { keywords: ["bajaj auto", "bajajauto"], symbol: "BAJAJ-AUTO" },
+  { keywords: ["bajaj finance", "bajfinance"], symbol: "BAJFINANCE" },
+  { keywords: ["bajaj finserv", "bajajfinsv"], symbol: "BAJAJFINSV" },
+  { keywords: ["larsen", "l&t", "lt"], symbol: "LT" },
+  { keywords: ["sun pharma", "sunpharma", "sun pharmaceutical"], symbol: "SUNPHARMA" },
+  { keywords: ["ultratech", "ultracemco", "ultratech cement"], symbol: "ULTRACEMCO" },
+  { keywords: ["coal india", "coalindia"], symbol: "COALINDIA" },
+  { keywords: ["ntpc"], symbol: "NTPC" },
+  { keywords: ["nestle", "nestleind"], symbol: "NESTLEIND" },
+  { keywords: ["ongc", "oil & natural gas"], symbol: "ONGC" },
+  { keywords: ["jsw steel", "jswsteel"], symbol: "JSWSTEEL" },
+  { keywords: ["kotak", "kotak bank", "kotak mahindra"], symbol: "KOTAKBANK" },
+  { keywords: ["bel", "bharat electronics"], symbol: "BEL" },
+  { keywords: ["airtel", "bharti airtel", "bhartiartl"], symbol: "BHARTIARTL" },
+  { keywords: ["hindunilvr", "hindustan unilever", "hul", "hind uilever"], symbol: "HINDUNILVR" },
+  { keywords: ["titan"], symbol: "TITAN" }
+];
+
+export const findLocalStock = (query) => {
+  const q = query.toLowerCase().trim();
+  
+  // Match exact ticker symbols
+  const upperQ = q.toUpperCase();
+  if (LOCAL_TICKERS[upperQ]) {
+    return LOCAL_TICKERS[upperQ];
+  }
+  
+  // Match ticker patterns (remove .NS, .BO, spaces)
+  const cleanQ = upperQ.replace('.NS', '').replace('.BO', '').replace(/[\s-]/g, '');
+  const matchedKey = Object.keys(LOCAL_TICKERS).find(key => 
+    key.replace(/[\s-]/g, '') === cleanQ
+  );
+  if (matchedKey) {
+    return LOCAL_TICKERS[matchedKey];
+  }
+  
+  const found = LOCAL_MAPPINGS.find(m => 
+    m.keywords.some(kw => q === kw || q.includes(kw))
+  );
+  if (found) {
+    return LOCAL_TICKERS[found.symbol];
+  }
+  return null;
+};
+
 const suggestionPills = [
   { label: "Top Nifty 50", query: "Show Nifty 50 valuation metrics and segment leaders" },
   { label: "High Growth", query: "List high growth mid-caps in the Indian market" },
@@ -100,30 +194,55 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
   // Fetch stock quotes from Yahoo Finance via CORS proxy
   const fetchAutocomplete = async (query) => {
     try {
+      const localMatch = findLocalStock(query);
+      let localResults = [];
+      if (localMatch) {
+        localResults.push({
+          symbol: localMatch.symbol + ".NS",
+          longname: localMatch.name,
+          shortname: localMatch.name,
+          exchange: "NSI"
+        });
+      }
+
       const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=8&newsCount=0`;
       const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
       
-      const res = await fetch(proxyUrl);
-      const data = await res.json();
-      
-      if (data && data.quotes) {
-        // Filter for NSE / BSE stocks (symbol ending in .NS or .BO)
-        const indianStocks = data.quotes.filter(item => 
-          item.symbol && 
-          (item.symbol.endsWith('.NS') || 
-           item.symbol.endsWith('.BO') || 
-           item.exchange === 'NSI' || 
-           item.exchange === 'BOM' || 
-           (item.exchDisp && (item.exchDisp.toLowerCase() === 'nse' || item.exchDisp.toLowerCase() === 'bse')))
-        );
-        setSearchResults(indianStocks.slice(0, 5));
-        setShowDropdown(indianStocks.length > 0);
+      let yahooStocks = [];
+      try {
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        if (data && data.quotes) {
+          yahooStocks = data.quotes.filter(item => 
+            item.symbol && 
+            (item.symbol.endsWith('.NS') || 
+             item.symbol.endsWith('.BO') || 
+             item.exchange === 'NSI' || 
+             item.exchange === 'BOM' || 
+             (item.exchDisp && (item.exchDisp.toLowerCase() === 'nse' || item.exchDisp.toLowerCase() === 'bse')))
+          );
+        }
+      } catch (e) {
+        console.error("Yahoo search failed during autocomplete, relying on local match:", e);
       }
+
+      // Combine and remove duplicate symbols
+      const combined = [...localResults];
+      yahooStocks.forEach(item => {
+        const cleanYahooSymbol = item.symbol.replace('.NS', '').replace('.BO', '');
+        if (!combined.some(c => c.symbol.replace('.NS', '').replace('.BO', '') === cleanYahooSymbol)) {
+          combined.push(item);
+        }
+      });
+
+      setSearchResults(combined.slice(0, 5));
+      setShowDropdown(combined.length > 0);
     } catch (err) {
       console.error("Autocomplete search error:", err);
     }
   };
 
+  // Fetch real chart and market price details for a stock
   // Fetch real chart and market price details for a stock
   const fetchAndRenderStock = async (symbol, displayName, rawStockInfo) => {
     setIsTyping(true);
@@ -133,69 +252,117 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
       const json = await res.json();
       
       if (json && json.success && json.data) {
-        const { quote, analysis } = json.data;
-        const currentPrice = quote.price;
-        const previousClose = currentPrice * 0.985; // Synthesize previous close (e.g. -1.5% from current)
-        const change = currentPrice - previousClose;
-        const changePct = 1.5; // +1.5%
-        const volume = quote.volume || 0;
-        const fiftyTwoWeekHigh = currentPrice * 1.25;
-        const fiftyTwoWeekLow = currentPrice * 0.85;
-        const positionPct = Math.round(((currentPrice - fiftyTwoWeekLow) / (fiftyTwoWeekHigh - fiftyTwoWeekLow)) * 100);
+        const { quote, analysis, isConcall, concallData } = json.data;
 
-        // Synthesize chart points around the current price for 1 month
-        const chartPoints = [];
-        const baseValue = previousClose;
-        const pointsCount = 5;
-        for (let i = 0; i < pointsCount; i++) {
-          const label = `W${i + 1}`;
-          const variance = (Math.sin(i) * 0.02);
-          chartPoints.push({
-            label: label,
-            revenue: Math.round(baseValue * (1 + variance + (i * (changePct / (pointsCount - 1) / 100))))
-          });
+        if (isConcall && concallData) {
+          const botMsg = {
+            sender: 'bot',
+            sources: ["Earnings Conference Call Transcript", "UperAI Research Engine"],
+            summary: `Here is the earnings call analysis for **${displayName} (${symbol})** for **${concallData.quarter} ${concallData.financialYear}**:\n\n${analysis.summary}`,
+            metrics: [
+              { 
+                label: "Revenue", 
+                value: concallData.keyNumbers?.revenue || concallData.quarterlyPerformance?.revenue || "N/A", 
+                change: concallData.quarterlyPerformance?.revenue?.includes('(')
+                  ? concallData.quarterlyPerformance.revenue.substring(concallData.quarterlyPerformance.revenue.indexOf('(') + 1, concallData.quarterlyPerformance.revenue.indexOf(')'))
+                  : "YoY"
+              },
+              { 
+                label: "EBITDA", 
+                value: concallData.keyNumbers?.ebitda || concallData.quarterlyPerformance?.ebitda || "N/A", 
+                change: concallData.quarterlyPerformance?.ebitda?.includes('(')
+                  ? concallData.quarterlyPerformance.ebitda.substring(concallData.quarterlyPerformance.ebitda.indexOf('(') + 1, concallData.quarterlyPerformance.ebitda.indexOf(')'))
+                  : "Margin"
+              },
+              { 
+                label: "PAT", 
+                value: concallData.keyNumbers?.pat || concallData.quarterlyPerformance?.pat || "N/A", 
+                change: concallData.quarterlyPerformance?.pat?.includes('(')
+                  ? concallData.quarterlyPerformance.pat.substring(concallData.quarterlyPerformance.pat.indexOf('(') + 1, concallData.quarterlyPerformance.pat.indexOf(')'))
+                  : "Net Profit"
+              },
+              { 
+                label: "AI Sentiment", 
+                value: `${concallData.aiSentiment?.score}/100`, 
+                change: concallData.aiSentiment?.classification || "Neutral" 
+              }
+            ],
+            chartData: null, // Avoid standard stock charts and market pricing metrics
+            chartTitle: "",
+            sections: analysis.sections || []
+          };
+          setMessages(prev => [...prev, botMsg]);
+        } else {
+          const currentPrice = quote.price;
+          const previousClose = currentPrice * 0.985; // Synthesize previous close (e.g. -1.5% from current)
+          const change = currentPrice - previousClose;
+          const changePct = 1.5; // +1.5%
+          const volume = quote.volume || 0;
+          const fiftyTwoWeekHigh = currentPrice * 1.25;
+          const fiftyTwoWeekLow = currentPrice * 0.85;
+          const positionPct = Math.round(((currentPrice - fiftyTwoWeekLow) / (fiftyTwoWeekHigh - fiftyTwoWeekLow)) * 100);
+
+          // Synthesize chart points around the current price for 1 month
+          const chartPoints = [];
+          const baseValue = previousClose;
+          const pointsCount = 5;
+          for (let i = 0; i < pointsCount; i++) {
+            const label = `W${i + 1}`;
+            const variance = (Math.sin(i) * 0.02);
+            chartPoints.push({
+              label: label,
+              revenue: Math.round(baseValue * (1 + variance + (i * (changePct / (pointsCount - 1) / 100))))
+            });
+          }
+
+          const peRatio = analysis.peRatio || "N/A";
+          const marketCap = analysis.marketCap || "N/A";
+          const divYield = analysis.divYield || "N/A";
+          const roe = analysis.roe || "N/A";
+
+          const botMsg = {
+            sender: 'bot',
+            sources: ["NSE/BSE Exchange Feed", "UperAI Research Engine"],
+            summary: analysis.summary,
+            metrics: [
+              { label: "Current Price", value: `₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%` },
+              { label: "Market Cap", value: marketCap !== "N/A" ? marketCap : "₹ -", change: `Vol: ${volume.toLocaleString('en-IN')}` },
+              { label: "P/E / ROE", value: peRatio !== "N/A" ? `${peRatio} / ${roe}` : "- / -", change: `Div Yield: ${divYield}` },
+              { label: "52-Week Range", value: `₹${fiftyTwoWeekLow.toLocaleString('en-IN')} - ₹${fiftyTwoWeekHigh.toLocaleString('en-IN')}`, change: `Annual Position: ${positionPct}%` }
+            ],
+            chartData: chartPoints,
+            chartTitle: `${displayName} Price trend (1-Month)`,
+            sections: analysis.sections || [
+              {
+                title: "Market Momentum & Technical Summary",
+                content: analysis.technicalOverview || ""
+              }
+            ]
+          };
+
+          setMessages(prev => [...prev, botMsg]);
         }
-
-        const peRatio = analysis.peRatio || "N/A";
-        const marketCap = analysis.marketCap || "N/A";
-        const divYield = analysis.divYield || "N/A";
-        const roe = analysis.roe || "N/A";
-
-        const botMsg = {
-          sender: 'bot',
-          sources: ["NSE/BSE Exchange Feed", "UperAI Research Engine"],
-          summary: analysis.summary,
-          metrics: [
-            { label: "Current Price", value: `₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%` },
-            { label: "Market Cap", value: marketCap !== "N/A" ? marketCap : "₹ -", change: `Vol: ${volume.toLocaleString('en-IN')}` },
-            { label: "P/E / ROE", value: peRatio !== "N/A" ? `${peRatio} / ${roe}` : "- / -", change: `Div Yield: ${divYield}` },
-            { label: "52-Week Range", value: `₹${fiftyTwoWeekLow.toLocaleString('en-IN')} - ₹${fiftyTwoWeekHigh.toLocaleString('en-IN')}`, change: `Annual Position: ${positionPct}%` }
-          ],
-          chartData: chartPoints,
-          chartTitle: `${displayName} Price trend (1-Month)`,
-          sections: analysis.sections || [
-            {
-              title: "Market Momentum & Technical Summary",
-              content: analysis.technicalOverview || ""
-            }
-          ]
-        };
-
-        setMessages(prev => [...prev, botMsg]);
       } else {
-        throw new Error("Invalid response schema");
+        throw new Error(json?.error || "Invalid response schema");
       }
     } catch (err) {
       console.error("Failed to parse stock price:", err);
+      const isNoConcall = err.message && err.message.includes("No Concall Transcript Available");
+      
       const fallbackMsg = {
         sender: 'bot',
-        summary: `I searched for **${symbol}** but could not complete the live request. Here is general profiling data for **${displayName}**:`,
-        sections: [
-          {
-            title: "Corporate Overview",
-            content: `${displayName} is listed under symbol ${symbol} on Indian exchanges. Standard brokerage indicators remain hold/neutral pending upcoming board review announcements.`
-          }
-        ]
+        sources: ["UperAI Research Engine"],
+        summary: isNoConcall 
+          ? `No Concall Transcript Available for **${displayName} (${symbol})**.`
+          : `I searched for **${symbol}** but could not complete the live request. Here is general profiling data for **${displayName}**:`,
+        sections: isNoConcall 
+          ? [] 
+          : [
+            {
+              title: "Corporate Overview",
+              content: `${displayName} is listed under symbol ${symbol} on Indian exchanges. Standard brokerage indicators remain hold/neutral pending upcoming board review announcements.`
+            }
+          ]
       };
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
@@ -318,6 +485,20 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
     }
 
     const cleanQuery = text.toLowerCase();
+    
+    // Check if query is a direct search for a local company
+    const localMatch = findLocalStock(text);
+    const isShortQuery = text.trim().split(/\s+/).length <= 3 && 
+                         !cleanQuery.includes("why") && 
+                         !cleanQuery.includes("how") && 
+                         !cleanQuery.includes("compare") &&
+                         !cleanQuery.includes("rules") &&
+                         !cleanQuery.includes("policy");
+
+    if (localMatch && isShortQuery) {
+      await fetchAndRenderStock(localMatch.symbol, localMatch.name, { symbol: localMatch.symbol });
+      return;
+    }
     
     // 1. Check if the query matches one of our predefined high-fidelity demo responses
     let presetKey = "";
