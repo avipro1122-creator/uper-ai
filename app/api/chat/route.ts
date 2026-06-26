@@ -153,7 +153,9 @@ Return ONLY a valid JSON object (do not include markdown code block formatting l
     {"label": "Point Label (e.g. Q1, Q2 or Week 1)", "revenue": 100}
   ],
   "sections": [
-    {"title": "Section Title (e.g. Management Guidance, Capex & Margins, Concall Key Takeaways)", "content": "Bulleted takeaways using •, outlining guidance percentages, operational constraints, and clear management comments."}
+    {"title": "Executive Summary", "content": "Detailed bulleted highlights of the executive summary and core high-level takeaways using •."},
+    {"title": "Management Commentary", "content": "Detailed bulleted highlights of business updates, capacity expansion, demand trends, and pricing/costs using •."},
+    {"title": "Future Guidance", "content": "Detailed bulleted highlights of growth outlook, revenue/margin guidance, capex plans, and highlighted execution risks using •."}
   ]
 }
 
@@ -226,11 +228,15 @@ Generated in offline fallback mode.
 | **Debt / Cash** | Debt: ${data1.keyNumbers.debt} / Cash: ${data1.keyNumbers.cash} | Debt: ${data2.keyNumbers.debt} / Cash: ${data2.keyNumbers.cash} |
 | **AI Sentiment** | Score: ${data1.aiSentiment.score} (${data1.aiSentiment.classification}) | Score: ${data2.aiSentiment.score} (${data2.aiSentiment.classification}) |
 
-#### Key Strategic Highlights:
+#### Executive Summary:
 * **${comp1.symbol}**: ${data1.executiveSummary.bullets[0]}
 * **${comp2.symbol}**: ${data2.executiveSummary.bullets[0]}
 
-#### Guidance Outlook:
+#### Management Commentary:
+* **${comp1.symbol}**: ${data1.managementCommentary.businessUpdates[0]}
+* **${comp2.symbol}**: ${data2.managementCommentary.businessUpdates[0]}
+
+#### Future Guidance:
 * **${comp1.symbol}**: ${data1.futureGuidance.growthOutlook}
 * **${comp2.symbol}**: ${data2.futureGuidance.growthOutlook}
 `;
@@ -256,12 +262,16 @@ Generated in offline fallback mode.
               ],
               sections: [
                 {
-                  title: `Strategic Takeaways for ${comp1.symbol}`,
-                  content: data1.executiveSummary.bullets.map((b: string) => `• ${b}`).join('\n')
+                  title: "Executive Summary",
+                  content: `**${comp1.symbol}**:\n${data1.executiveSummary.bullets.map((b: string) => `• ${b}`).join('\n')}\n\n**${comp2.symbol}**:\n${data2.executiveSummary.bullets.map((b: string) => `• ${b}`).join('\n')}`
                 },
                 {
-                  title: `Strategic Takeaways for ${comp2.symbol}`,
-                  content: data2.executiveSummary.bullets.map((b: string) => `• ${b}`).join('\n')
+                  title: "Management Commentary",
+                  content: `**${comp1.symbol}**:\n${data1.managementCommentary.businessUpdates.map((b: string) => `• ${b}`).join('\n')}\n\n**${comp2.symbol}**:\n${data2.managementCommentary.businessUpdates.map((b: string) => `• ${b}`).join('\n')}`
+                },
+                {
+                  title: "Future Guidance",
+                  content: `**${comp1.symbol}**:\n• Growth: ${data1.futureGuidance.growthOutlook}\n• Capex: ${data1.futureGuidance.capexPlans}\n\n**${comp2.symbol}**:\n• Growth: ${data2.futureGuidance.growthOutlook}\n• Capex: ${data2.futureGuidance.capexPlans}`
                 }
               ]
             };
@@ -280,13 +290,11 @@ Generated in offline fallback mode.
 #### Executive Summary:
 ${data.executiveSummary.bullets.map((b: string) => `* ${b}`).join('\n')}
 
-#### Key Performance Indicators:
-* **Revenue**: ${data.quarterlyPerformance.revenue}
-* **EBITDA**: ${data.quarterlyPerformance.ebitda} (Margins: ${data.quarterlyPerformance.margins})
-* **PAT**: ${data.quarterlyPerformance.pat}
-* **Volume Growth**: ${data.quarterlyPerformance.volumeGrowth}
+#### Management Commentary:
+* **Business Updates**: ${data.managementCommentary.businessUpdates?.[0] || 'Ongoing operations'}
+* **Pricing & Costs**: ${data.managementCommentary.pricing?.[0] || 'Stable pricing'}
 
-#### Management Guidance & Future Outlook:
+#### Future Guidance:
 * **Revenue Guidance**: ${data.futureGuidance.revenueGuidance}
 * **Margin Guidance**: ${data.futureGuidance.marginGuidance}
 * **Capex Plans**: ${data.futureGuidance.capexPlans}
@@ -311,12 +319,16 @@ ${data.executiveSummary.bullets.map((b: string) => `* ${b}`).join('\n')}
               ],
               sections: [
                 {
-                  title: "Executive Summary & Performance",
+                  title: "Executive Summary",
                   content: data.executiveSummary.bullets.map((b: string) => `• ${b}`).join('\n')
                 },
                 {
-                  title: "Management Commentary & Guidance",
-                  content: `• Business Updates:\n${data.managementCommentary.businessUpdates.map((b: string) => `  - ${b}`).join('\n')}\n\n• Future Capex & Growth:\n  - Capex Plans: ${data.futureGuidance.capexPlans}\n  - Growth Outlook: ${data.futureGuidance.growthOutlook}`
+                  title: "Management Commentary",
+                  content: `• Business Updates:\n${data.managementCommentary.businessUpdates.map((b: string) => `  - ${b}`).join('\n')}\n\n• Capacity Expansion:\n${data.managementCommentary.capacityExpansion.map((b: string) => `  - ${b}`).join('\n')}\n\n• Pricing & Costs:\n${data.managementCommentary.pricing.map((b: string) => `  - ${b}`).join('\n')}`
+                },
+                {
+                  title: "Future Guidance",
+                  content: `• Growth Outlook: ${data.futureGuidance.growthOutlook}\n• Revenue Guidance: ${data.futureGuidance.revenueGuidance}\n• Margin Guidance: ${data.futureGuidance.marginGuidance}\n• Capex Plans: ${data.futureGuidance.capexPlans}\n• Risks:\n${data.futureGuidance.risksHighlighted.map((r: string) => `  - ${r}`).join('\n')}`
                 }
               ]
             };
