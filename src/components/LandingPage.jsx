@@ -291,12 +291,12 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           </div>
 
           <h1 className="hero-main-title animate-fade-in">
-            First-Principles <br/>
-            <span className="gradient-teal-text">Equity Translator</span>
+            Understand Earnings <br/>
+            <span className="gradient-teal-text">Calls in Seconds</span>
           </h1>
 
           <p className="hero-description animate-fade-in">
-            Deconstruct complex balance sheets, earnings call transcripts, and corporate disclosures into clean, actionable intelligence instantly. Specialized for Indian market rules.
+            AI that converts complex earnings calls and financial reports into simple, actionable insights for Indian investors.
           </p>
 
           {/* Embedded Live Chat Terminal Box */}
