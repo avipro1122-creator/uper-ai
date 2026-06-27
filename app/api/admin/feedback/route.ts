@@ -19,7 +19,7 @@ export async function GET() {
     const auth = await checkAdminAuth();
     if (!auth.authorized) return auth.response!;
 
-    const data = readData();
+    const data = await readData();
     // Sort feedback by date descending
     const sortedFeedback = [...(data.feedback || [])].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -46,7 +46,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing feedbackId in request body" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const targetFeedbackIdx = data.feedback.findIndex(f => f.id === String(feedbackId));
@@ -66,7 +66,7 @@ export async function DELETE(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,

@@ -19,7 +19,7 @@ export async function GET() {
     const auth = await checkAdminAuth();
     if (!auth.authorized) return auth.response!;
 
-    const data = readData();
+    const data = await readData();
     return NextResponse.json({
       success: true,
       stocks: data.stocks
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields: ticker, name, price" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
     const cleanTicker = ticker.toUpperCase().trim();
 
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing stock ID in body" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const stock = data.stocks.find(s => s.id === String(id));
@@ -123,7 +123,7 @@ export async function PUT(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
@@ -146,7 +146,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing stock ID in body" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const stockIdx = data.stocks.findIndex(s => s.id === String(id));
@@ -166,7 +166,7 @@ export async function DELETE(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,

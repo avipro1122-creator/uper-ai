@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
     const { googleId, email, name, picture } = googleProfile;
 
-    const data = readData();
+    const data = await readData();
     let user = data.users.find(u => u.googleId === googleId || u.email.toLowerCase() === email.toLowerCase());
 
     const isFirstLogin = !user;
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       });
     }
 
-    writeData(data);
+    await writeData(data);
 
     const payload = {
       id: user.id,

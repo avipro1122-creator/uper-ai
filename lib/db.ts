@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { supabase } from './supabase';
 
 export interface User {
   id: string;
@@ -58,71 +57,116 @@ export interface DatabaseSchema {
   logs: SystemLog[];
 }
 
-const getDbFilePath = (): string => {
-  if (process.env.VERCEL === '1' || process.env.NOW_BUILDER === '1') {
-    return path.join('/tmp', 'database.json');
-  }
-  return path.join(process.cwd(), 'database.json');
-};
+const mapUserFromDb = (u: any): User => ({
+  id: u.id,
+  googleId: u.google_id || '',
+  name: u.name || '',
+  email: u.email || '',
+  profileImage: u.profile_image || '',
+  role: u.role || 'USER',
+  createdAt: u.created_at || '',
+  updatedAt: u.updated_at || '',
+  lastLogin: u.last_login || '',
+});
 
-const DB_FILE = getDbFilePath();
+const mapUserToDb = (u: User) => ({
+  id: u.id,
+  google_id: u.googleId,
+  name: u.name,
+  email: u.email,
+  profile_image: u.profileImage,
+  role: u.role,
+  created_at: u.createdAt,
+  updated_at: u.updatedAt,
+  last_login: u.lastLogin,
+});
 
-export const initDb = (): void => {
-  if (!fs.existsSync(DB_FILE)) {
-    const defaultData: DatabaseSchema = {
-      users: [
-        {
-          id: "1",
-          googleId: "111111111111111111111",
-          name: "Administrator",
-          email: "AviPro1122@gmail.com",
-          profileImage: "https://api.dicebear.com/7.x/bottts/svg?seed=Admin",
-          role: "ADMIN",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString()
-        }
-      ],
-      stocks: [
-        { id: "1", ticker: "RELIANCE", name: "Reliance Industries Ltd.", price: 2945.60, change: "+1.85%", marketCap: "₹19.92 Lakh Cr", peRatio: "27.4", divYield: "0.34%", roe: "9.6%" },
-        { id: "2", ticker: "TATAPOWER", name: "Tata Power Company Ltd.", price: 435.25, change: "+4.12%", marketCap: "₹1.39 Lakh Cr", peRatio: "34.8", divYield: "0.52%", roe: "12.4%" },
-        { id: "3", ticker: "TATAMOTORS", name: "Tata Motors Ltd.", price: 960.40, change: "+2.11%", marketCap: "₹3.18 Lakh Cr", peRatio: "11.2", divYield: "0.60%", roe: "22.4%" }
-      ],
-      news: [
-        { id: "1", title: "PM Surya Ghar Yojana Boosts Tata Power Solar Pipeline", content: "Tata Power Solar registered an 18% YoY growth in its order book, reaching ₹15,400 crore, following the implementation of the PM Surya Ghar Muft Bijli Yojana.", author: "UperAI News Desk", date: new Date().toISOString() },
-        { id: "2", title: "Auto Sector Valuation Dispersion Widens in Q1 FY26", content: "Divergence between CVs and Two-Wheelers recovery maps to higher premium values for structural profiles like Bajaj Auto and Tata Motors.", author: "UperAI Analysts", date: new Date().toISOString() }
-      ],
-      feedback: [
-        { id: "1", name: "Rohan Das", email: "rohan@gmail.com", type: "feedback", message: "Terminal is super fast and clean. Love the interactive chart!", date: new Date().toISOString() }
-      ],
-      logs: [
-        { id: "1", email: "AviPro1122@gmail.com", action: "DATABASE_INITIALIZED", details: "Local JSON Database seeded and verified.", timestamp: new Date().toISOString() }
-      ]
-    };
-    try {
-      fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
-      fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf8');
-    } catch (error) {
-      console.error("Failed to initialize JSON database file:", error);
-    }
-  }
-};
+const mapStockFromDb = (s: any): Stock => ({
+  id: s.id,
+  ticker: s.ticker || '',
+  name: s.name || '',
+  price: s.price || 0,
+  change: s.change || '',
+  marketCap: s.market_cap || '',
+  peRatio: s.pe_ratio || '',
+  divYield: s.div_yield || '',
+  roe: s.roe || '',
+});
 
-export const readData = (): DatabaseSchema => {
-  initDb();
+const mapStockToDb = (s: Stock) => ({
+  id: s.id,
+  ticker: s.ticker,
+  name: s.name,
+  price: s.price,
+  change: s.change,
+  market_cap: s.marketCap,
+  pe_ratio: s.peRatio,
+  div_yield: s.divYield,
+  roe: s.roe,
+});
+
+export const readData = async (): Promise<DatabaseSchema> => {
   try {
-    const content = fs.readFileSync(DB_FILE, 'utf8');
-    return JSON.parse(content) as DatabaseSchema;
+    const [usersRes, stocksRes, newsRes, feedbackRes, logsRes] = await Promise.all([
+      supabase.from('users').select('*'),
+      supabase.from('stocks').select('*'),
+      supabase.from('news').select('*'),
+      supabase.from('feedback').select('*'),
+      supabase.from('logs').select('*')
+    ]);
+
+    return {
+      users: (usersRes.data || []).map(mapUserFromDb),
+      stocks: (stocksRes.data || []).map(mapStockFromDb),
+      news: newsRes.data || [],
+      feedback: feedbackRes.data || [],
+      logs: logsRes.data || []
+    };
   } catch (error) {
     console.error("Failed to read JSON DB, returning empty schema", error);
     return { users: [], stocks: [], news: [], feedback: [], logs: [] };
   }
 };
 
-export const writeData = (data: DatabaseSchema): boolean => {
+export const writeData = async (data: DatabaseSchema): Promise<boolean> => {
   try {
-    fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    const usersToDb = data.users.map(mapUserToDb);
+    const stocksToDb = data.stocks.map(mapStockToDb);
+    const newsToDb = data.news;
+    const feedbackToDb = data.feedback;
+    const logsToDb = data.logs;
+
+    // Fetch existing records to handle deletes
+    const [dbUsers, dbStocks, dbNews, dbFeedback, dbLogs] = await Promise.all([
+      supabase.from('users').select('id'),
+      supabase.from('stocks').select('id'),
+      supabase.from('news').select('id'),
+      supabase.from('feedback').select('id'),
+      supabase.from('logs').select('id')
+    ]);
+
+    const usersToDelete = (dbUsers.data || []).filter(row => !data.users.some(u => u.id === row.id)).map(row => row.id);
+    const stocksToDelete = (dbStocks.data || []).filter(row => !data.stocks.some(s => s.id === row.id)).map(row => row.id);
+    const newsToDelete = (dbNews.data || []).filter(row => !data.news.some(n => n.id === row.id)).map(row => row.id);
+    const feedbackToDelete = (dbFeedback.data || []).filter(row => !data.feedback.some(f => f.id === row.id)).map(row => row.id);
+    const logsToDelete = (dbLogs.data || []).filter(row => !data.logs.some(l => l.id === row.id)).map(row => row.id);
+
+    const deletePromises = [];
+    if (usersToDelete.length > 0) deletePromises.push(supabase.from('users').delete().in('id', usersToDelete));
+    if (stocksToDelete.length > 0) deletePromises.push(supabase.from('stocks').delete().in('id', stocksToDelete));
+    if (newsToDelete.length > 0) deletePromises.push(supabase.from('news').delete().in('id', newsToDelete));
+    if (feedbackToDelete.length > 0) deletePromises.push(supabase.from('feedback').delete().in('id', feedbackToDelete));
+    if (logsToDelete.length > 0) deletePromises.push(supabase.from('logs').delete().in('id', logsToDelete));
+
+    await Promise.all([
+      ...deletePromises,
+      usersToDb.length > 0 ? supabase.from('users').upsert(usersToDb) : Promise.resolve(),
+      stocksToDb.length > 0 ? supabase.from('stocks').upsert(stocksToDb) : Promise.resolve(),
+      newsToDb.length > 0 ? supabase.from('news').upsert(newsToDb) : Promise.resolve(),
+      feedbackToDb.length > 0 ? supabase.from('feedback').upsert(feedbackToDb) : Promise.resolve(),
+      logsToDb.length > 0 ? supabase.from('logs').upsert(logsToDb) : Promise.resolve(),
+    ]);
+
     return true;
   } catch (error) {
     console.error("Failed to write to JSON DB", error);

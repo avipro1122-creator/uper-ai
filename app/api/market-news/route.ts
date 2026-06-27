@@ -71,7 +71,7 @@ export async function GET(request: Request) {
 
     // Fallback: load news from local mock JSON database
     try {
-      const localData = readData();
+      const localData = await readData();
       const fallbackArticles: FormattedArticle[] = localData.news.map((item) => ({
         id: item.id,
         title: item.title,

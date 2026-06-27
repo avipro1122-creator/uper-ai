@@ -14,7 +14,7 @@ export async function GET() {
       );
     }
 
-    const data = readData();
+    const data = await readData();
     return NextResponse.json({
       success: true,
       stats: {

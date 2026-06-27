@@ -19,7 +19,7 @@ export async function GET() {
     const auth = await checkAdminAuth();
     if (!auth.authorized) return auth.response!;
 
-    const data = readData();
+    const data = await readData();
     return NextResponse.json({
       success: true,
       news: data.news
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields: title, content" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const newArticle = {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
@@ -86,7 +86,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing article ID" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const article = data.news.find(n => n.id === String(id));
@@ -108,7 +108,7 @@ export async function PUT(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
@@ -131,7 +131,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing article ID" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const idx = data.news.findIndex(n => n.id === String(id));
@@ -151,7 +151,7 @@ export async function DELETE(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,

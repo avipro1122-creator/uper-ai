@@ -19,7 +19,7 @@ export async function GET() {
     const auth = await checkAdminAuth();
     if (!auth.authorized) return auth.response!;
 
-    const data = readData();
+    const data = await readData();
     return NextResponse.json({
       success: true,
       users: data.users
@@ -41,7 +41,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing userId or role in request body" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const targetUser = data.users.find(u => u.id === String(userId));
@@ -67,7 +67,7 @@ export async function PUT(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
@@ -90,7 +90,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing userId in request body" }, { status: 400 });
     }
 
-    const data = readData();
+    const data = await readData();
     const now = new Date().toISOString();
 
     const targetUserIdx = data.users.findIndex(u => u.id === String(userId));
@@ -116,7 +116,7 @@ export async function DELETE(request: Request) {
       timestamp: now
     });
 
-    writeData(data);
+    await writeData(data);
 
     return NextResponse.json({
       success: true,
