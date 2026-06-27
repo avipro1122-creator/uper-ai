@@ -3,11 +3,11 @@ import {
   Activity, Search, ArrowRight, Sparkles, TrendingUp, Compass, 
   FileText, Database, Layers, Award, Zap, Terminal, Gauge, Cpu, 
   Menu, X, Check, Shield, BarChart3, HelpCircle, Users, BookOpen,
-  RefreshCw
+  RefreshCw, LogOut
 } from 'lucide-react';
 import ChatInterface from './ChatInterface';
 
-export default function LandingPage({ user, onStartSearch, onNavigateToView, onRequireLogin }) {
+export default function LandingPage({ user, onStartSearch, onNavigateToView, onRequireLogin, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -187,6 +187,27 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
                   className="nav-user-avatar" 
                   title={user.name} 
                 />
+                <button 
+                  onClick={onLogout} 
+                  className="btn-logout-nav"
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.15)',
+                    color: '#EF4444',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <LogOut size={12} />
+                  <span>Logout</span>
+                </button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -211,7 +232,45 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
             <button onClick={() => scrollToSection(statsRef)} className="mobile-drawer-link">Market Ticker</button>
             <button onClick={() => scrollToSection(whyRef)} className="mobile-drawer-link">Why UperAI</button>
             <div className="mobile-drawer-divider" />
-            {user ? null : (
+            {user ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 16px 16px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                  <img 
+                    src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`} 
+                    alt={user.name} 
+                    style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid var(--border-subtle)' }}
+                  />
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.email}</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onLogout();
+                  }}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.15)',
+                    color: '#EF4444',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <LogOut size={14} />
+                  Logout
+                </button>
+              </div>
+            ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <button onClick={() => onNavigateToView('auth')} className="btn-signin-nav mobile-drawer-btn">
                   Sign In

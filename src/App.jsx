@@ -170,6 +170,7 @@ function App() {
         onStartSearch={handleStartSearch} 
         onNavigateToView={(view, path) => navigate(view, path || (view === 'chat' ? '/chat' : '/'))}
         onRequireLogin={() => navigate('auth', '/login?limit=2')}
+        onLogout={handleLogout}
       />
     );
   }
