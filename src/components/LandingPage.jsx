@@ -302,8 +302,8 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           {/* Embedded Live Chat Terminal Box */}
           <div className="hero-chat-box-container animate-fade-in" style={{
             width: '100%',
-            maxWidth: '900px',
-            height: '550px',
+            maxWidth: '1050px',
+            height: '620px',
             marginTop: '32px',
             borderRadius: '12px',
             border: '1px solid var(--border-subtle)',
