@@ -5,15 +5,21 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('stocks').select('*');
+    const [u, s, n, f, l] = await Promise.all([
+      supabase.from('users').select('*'),
+      supabase.from('stocks').select('*'),
+      supabase.from('news').select('*'),
+      supabase.from('feedback').select('*'),
+      supabase.from('logs').select('*')
+    ]);
+
     return NextResponse.json({
       success: true,
-      error: error,
-      stocks: data,
-      url: process.env.SUPABASE_URL,
-      // Hide most of the key but show length and prefix for validation
-      keyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 10) : "none",
-      keyLength: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
+      users: { count: u.data ? u.data.length : 0, error: u.error },
+      stocks: { count: s.data ? s.data.length : 0, error: s.error },
+      news: { count: n.data ? n.data.length : 0, error: n.error },
+      feedback: { count: f.data ? f.data.length : 0, error: f.error },
+      logs: { count: l.data ? l.data.length : 0, error: l.error }
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
