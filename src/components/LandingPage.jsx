@@ -23,7 +23,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Refs for smooth scroll
-  const featuresRef = useRef(null);
   const statsRef = useRef(null);
   const whyRef = useRef(null);
 
@@ -173,7 +172,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           </div>
 
           <nav className="desktop-nav">
-            <button onClick={() => scrollToSection(featuresRef)} className="nav-link-btn">Features</button>
             <button onClick={() => scrollToSection(statsRef)} className="nav-link-btn">Market Ticker</button>
             <button onClick={() => scrollToSection(whyRef)} className="nav-link-btn">Why UperAI</button>
           </nav>
@@ -228,7 +226,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="mobile-nav-drawer">
-            <button onClick={() => scrollToSection(featuresRef)} className="mobile-drawer-link">Features</button>
             <button onClick={() => scrollToSection(statsRef)} className="mobile-drawer-link">Market Ticker</button>
             <button onClick={() => scrollToSection(whyRef)} className="mobile-drawer-link">Why UperAI</button>
             <div className="mobile-drawer-divider" />
@@ -455,81 +452,7 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         </div>
       </section>
 
-      {/* Features Grid Section */}
-      <section ref={featuresRef} className="features-landing-section">
-        <div className="section-header">
-          <span className="section-subtitle">Core Capabilities</span>
-          <h2 className="section-title">Engineered for Advanced Equity Research</h2>
-          <p className="section-desc">
-            Go beyond generic chatbots with tools trained specifically on institutional finance datasets and SEBI accounting rules.
-          </p>
-        </div>
 
-        <div className="features-grid">
-          {/* Feature 1 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <Compass size={22} />
-            </div>
-            <h3>AI Equity Translator</h3>
-            <p>Translates complex, long-winded accounting notes, legal jargon, and boilerplate risk factors into plain-English financial reasoning.</p>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <Layers size={22} />
-            </div>
-            <h3>First-Principles Analysis</h3>
-            <p>Calculates ratios and operating models from baseline figures (revenues, raw material cost lines) to remove corporate reporting biases.</p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <BarChart3 size={22} />
-            </div>
-            <h3>Financial Statement Breakdown</h3>
-            <p>Automatically isolates key items, constructs cash flow diagrams, and maps out segment revenue splits in visual dashboards.</p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <FileText size={22} />
-            </div>
-            <h3>Annual Report Summaries</h3>
-            <p>Summarizes hundreds of PDF pages from annual filings, flagging changes in accounting policies, promoter actions, or audit qualifications.</p>
-          </div>
-
-          {/* Feature 5 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <Zap size={22} />
-            </div>
-            <h3>Earnings Call Analysis</h3>
-            <p>Transcribes and parses quarterly earnings concalls, tracking discrepancies in management comments vs actual financial statements.</p>
-          </div>
-
-          {/* Feature 6 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <Award size={22} />
-            </div>
-            <h3>Institutional Research</h3>
-            <p>Assists retail traders and research desks with structural insights comparable to high-end institutional brokerage terminals.</p>
-          </div>
-
-          {/* Feature 7 */}
-          <div className="feature-card glass-card">
-            <div className="feature-icon-box">
-              <Database size={22} />
-            </div>
-            <h3>AI Investment Insights</h3>
-            <p>Applies quantitative filters to evaluate if tickers trade below intrinsic value, identifying margins of safety automatically.</p>
-          </div>
-        </div>
-      </section>
 
       {/* Why UperAI Section */}
       <section ref={whyRef} className="why-landing-section">
@@ -594,7 +517,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           <div className="footer-links-grid">
             <div className="footer-link-group">
               <h4>Platform</h4>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(featuresRef); }}>Features</a>
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(statsRef); }}>Market Stats</a>
             </div>
 
