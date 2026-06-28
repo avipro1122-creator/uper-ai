@@ -149,13 +149,20 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
   
   const chatEndRef = useRef(null);
 
+  const processedInitialQueryRef = useRef(false);
+
   // Handle initial query from parent component (e.g. Landing Page Hero search)
   useEffect(() => {
     if (initialQuery) {
-      handleSend(initialQuery);
-      if (onClearInitialQuery) {
-        onClearInitialQuery();
+      if (!processedInitialQueryRef.current) {
+        processedInitialQueryRef.current = true;
+        handleSend(initialQuery);
+        if (onClearInitialQuery) {
+          onClearInitialQuery();
+        }
       }
+    } else {
+      processedInitialQueryRef.current = false;
     }
   }, [initialQuery]);
 

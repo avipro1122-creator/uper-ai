@@ -165,28 +165,54 @@ CRITICAL RULES:
 3. Output MUST be extremely crisp, professional, and knowledgeable.`;
     }
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }]
-          }
-        ]
-      })
-    });
+    let responseText = "";
+    if (geminiApiKey.startsWith('sk-')) {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${geminiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.2
+        })
+      });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API returned status ${res.status}: ${errText}`);
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`OpenAI API returned status ${res.status}: ${errText}`);
+      }
+
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || "";
+    } else {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }]
+            }
+          ]
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gemini API returned status ${res.status}: ${errText}`);
+      }
+
+      const data = await res.json();
+      responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     }
-
-    const data = await res.json();
-    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (isConversational) {
       return NextResponse.json({ success: true, type: 'text', text: responseText });

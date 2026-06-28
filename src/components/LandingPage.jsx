@@ -458,7 +458,6 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
                 <button className="btn-back-search" onClick={() => setShowChat(false)}>
                   ← Back to Search
                 </button>
-                <span className="terminal-title">UPERAI AI Research Terminal</span>
               </div>
               <div className="hero-chat-box-container" style={{
                 width: '100%',
