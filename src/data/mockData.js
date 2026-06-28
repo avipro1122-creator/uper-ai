@@ -1,13 +1,13 @@
 export const STOCK_DATA = {
   RELIANCE: {
-    name: "Reliance Industries Ltd. (RIL)",
+    name: "Reliance Industries Ltd.",
     ticker: "RELIANCE",
-    price: "₹2,945.60",
-    change: "+1.85%",
-    marketCap: "₹19.92 Lakh Cr",
-    peRatio: "27.4",
-    divYield: "0.34%",
-    roe: "9.6%",
+    price: "₹1,318.10",
+    change: "+0.34%",
+    marketCap: "₹17.84 Lakh Cr",
+    peRatio: "22.9",
+    divYield: "0.46%",
+    roe: "8.91%",
     chartData: [
       { label: "Q1 FY25", revenue: 236110, pat: 17448, jioUsers: 485 },
       { label: "Q2 FY25", revenue: 240350, pat: 19101, jioUsers: 489 },
@@ -19,12 +19,12 @@ export const STOCK_DATA = {
   TATA_POWER: {
     name: "Tata Power Company Ltd.",
     ticker: "TATAPOWER",
-    price: "₹435.25",
-    change: "+4.12%",
-    marketCap: "₹1.39 Lakh Cr",
-    peRatio: "34.8",
-    divYield: "0.52%",
-    roe: "12.4%",
+    price: "₹388.95",
+    change: "-1.06%",
+    marketCap: "₹1.24 Lakh Cr",
+    peRatio: "32.3",
+    divYield: "0.64%",
+    roe: "10.2%",
     chartData: [
       { label: "Q1 FY25", revenue: 17290, pat: 972 },
       { label: "Q2 FY25", revenue: 16210, pat: 1017 },
@@ -34,7 +34,7 @@ export const STOCK_DATA = {
     ]
   },
   AUTO_SECTOR: [
-    { name: "Tata Motors", ticker: "TATAMOTORS", price: "₹960.40", pe: "11.2", peg: "0.45", roe: "22.4%", ebitda: "14.3%" },
+    { name: "Tata Motors Ltd.", ticker: "TATAMOTORS", price: "₹431.90", pe: "40.2", peg: "0.45", roe: "34.0%", ebitda: "14.3%" },
     { name: "M&M", ticker: "M&M", price: "₹2,820.15", pe: "26.8", peg: "1.25", roe: "18.9%", ebitda: "12.8%" },
     { name: "Maruti Suzuki", ticker: "MARUTI", price: "₹12,410.00", pe: "28.5", peg: "1.40", roe: "15.6%", ebitda: "11.2%" },
     { name: "Bajaj Auto", ticker: "BAJAJ-AUTO", price: "₹9,850.50", pe: "24.1", peg: "0.95", roe: "28.1%", ebitda: "19.5%" }

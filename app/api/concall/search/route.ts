@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q')?.trim().toLowerCase() || '';
 
-  if (!query) {
+  if (!query || query.trim() === '' || query.toLowerCase() === 'undefined' || query.toLowerCase() === 'null') {
     return NextResponse.json({ success: true, data: [] });
   }
 

@@ -901,7 +901,7 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Ask Orion about stocks..."
+          placeholder="Ask about Stocks and Concalls."
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSend();
           }}

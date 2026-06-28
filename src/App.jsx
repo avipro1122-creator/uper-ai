@@ -1,34 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Cpu, LogOut, ShieldCheck, ShieldAlert, Menu, X, Compass, FileText, Database, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShieldAlert, Compass, FileText, Database, Activity } from 'lucide-react';
 import ChatInterface from './components/ChatInterface';
 import SLMVision from './components/SLMVision';
 import ConcallTerminal from './components/ConcallTerminal';
 import Auth from './components/Auth';
 import AdminDashboard from './components/AdminDashboard';
 import LandingPage from './components/LandingPage';
+import DiscoveryPage from './components/DiscoveryPage';
+import DiscoveryDetailPage from './components/DiscoveryDetailPage';
+import PricingPage from './components/PricingPage';
 import './App.css';
 
-// Inline GitHub SVG component
-const GithubIcon = ({ size = 16, ...props }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    {...props}
-  >
-    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-    <path d="M9 18c-4.51 2-5-2-7-2" />
-  </svg>
-);
-
 function App() {
-  const [activeView, setActiveView] = useState('home'); // 'home', 'chat', 'roadmap', 'admin', 'forbidden'
+  const [activeView, setActiveView] = useState('home'); // 'home', 'chat', 'roadmap', 'admin', 'forbidden', 'discovery', 'pricing', 'concall'
   const [user, setUser] = useState(null);
   const [loadingSession, setLoadingSession] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -72,6 +56,12 @@ function App() {
       setActiveView('concall');
     } else if (path === '/chat') {
       setActiveView('chat');
+    } else if (path === '/discovery') {
+      setActiveView('discovery');
+    } else if (path.startsWith('/discovery/')) {
+      setActiveView('discovery-detail');
+    } else if (path === '/pricing') {
+      setActiveView('pricing');
     } else {
       setActiveView('home');
     }
@@ -175,6 +165,44 @@ function App() {
     );
   }
 
+  // Show Discovery Page
+  if (activeView === 'discovery') {
+    return (
+      <DiscoveryPage
+        user={user}
+        onNavigateToView={(view, path) => navigate(view, path)}
+        onRequireLogin={() => navigate('auth', '/login')}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show Discovery Detail Page
+  if (activeView === 'discovery-detail') {
+    const ticker = typeof window !== 'undefined' ? window.location.pathname.split('/')[2] || '' : '';
+    return (
+      <DiscoveryDetailPage
+        ticker={ticker}
+        user={user}
+        onNavigateToView={(view, path) => navigate(view, path)}
+        onLogout={handleLogout}
+        onRequireLogin={() => navigate('auth', '/login')}
+      />
+    );
+  }
+
+  // Show Pricing Page
+  if (activeView === 'pricing') {
+    return (
+      <PricingPage
+        user={user}
+        onNavigateToView={(view, path) => navigate(view, path)}
+        onRequireLogin={() => navigate('auth', '/login')}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   // Show Auth screen if requested
   if (activeView === 'auth') {
     return <Auth onLoginSuccess={handleLoginSuccess} onBack={() => navigate('home', '/')} />;
@@ -192,7 +220,7 @@ function App() {
           Your account (<strong>{user.email}</strong>) does not have Administrator privileges. 
           All administrative requests are strictly audited.
         </p>
-        <button className="btn-primary" onClick={() => navigate('chat', '/')}>
+        <button className="btn-primary" onClick={() => navigate('chat', '/')} style={{ cursor: 'pointer' }}>
           Return to Research Terminal
         </button>
       </div>
@@ -206,19 +234,7 @@ function App() {
     );
   }
 
-  if (activeView === 'chat') {
-    return (
-      <ChatInterface
-        user={user}
-        onRequireLogin={() => navigate('auth', '/login?limit=2')}
-        initialQuery={landingSearchQuery}
-        onClearInitialQuery={() => setLandingSearchQuery('')}
-        onNavigate={navigate}
-        onLogout={handleLogout}
-      />
-    );
-  }
-
+  // Dashboard / Workspace Views
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)', color: 'var(--text-primary)' }}>
       {/* Background radial glow behind center area */}
@@ -226,14 +242,6 @@ function App() {
 
       {/* Sidebar Navigation */}
       <aside className={`sidebar-nav ${sidebarOpen ? 'mobile-open' : ''}`}>
-        {/* Mobile close button */}
-        <button 
-          className="mobile-sidebar-close" 
-          onClick={() => setSidebarOpen(false)}
-        >
-          <X size={20} />
-        </button>
-
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Logo Brand area */}
           <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
@@ -257,6 +265,7 @@ function App() {
             <button 
               className={`nav-item ${activeView === 'chat' ? 'active' : ''}`}
               onClick={() => navigate('chat', '/')}
+              style={{ cursor: 'pointer' }}
             >
               <Compass size={16} />
               <span>Research Terminal</span>
@@ -264,6 +273,7 @@ function App() {
             <button 
               className={`nav-item ${activeView === 'roadmap' ? 'active' : ''}`}
               onClick={() => navigate('roadmap', '/roadmap')}
+              style={{ cursor: 'pointer' }}
             >
               <FileText size={16} />
               <span>SLM Roadmap</span>
@@ -271,15 +281,33 @@ function App() {
             <button 
               className={`nav-item ${activeView === 'concall' ? 'active' : ''}`}
               onClick={() => navigate('concall', '/concall')}
+              style={{ cursor: 'pointer' }}
             >
               <Activity size={16} style={{ color: activeView === 'concall' ? 'var(--accent-color)' : 'inherit' }} />
               <span>Concall AI</span>
+            </button>
+            <button 
+              className={`nav-item ${(activeView === 'discovery' || activeView === 'discovery-detail') ? 'active' : ''}`}
+              onClick={() => navigate('discovery', '/discovery')}
+              style={{ cursor: 'pointer' }}
+            >
+              <Compass size={16} style={{ color: (activeView === 'discovery' || activeView === 'discovery-detail') ? 'var(--accent-color)' : 'inherit' }} />
+              <span>Discovery</span>
+            </button>
+            <button 
+              className={`nav-item ${activeView === 'pricing' ? 'active' : ''}`}
+              onClick={() => navigate('pricing', '/pricing')}
+              style={{ cursor: 'pointer' }}
+            >
+              <FileText size={16} style={{ color: activeView === 'pricing' ? 'var(--accent-color)' : 'inherit' }} />
+              <span>Pricing</span>
             </button>
             
             {user?.email?.toLowerCase() === 'avipro1122@gmail.com' && (
               <button 
                 className={`nav-item ${activeView === 'admin' ? 'active' : ''}`}
                 onClick={() => navigate('admin', '/admin')}
+                style={{ cursor: 'pointer' }}
               >
                 <Database size={16} />
                 <span>Admin Terminal</span>
@@ -317,7 +345,6 @@ function App() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <LogOut size={12} />
                   Logout
                 </button>
               </div>
@@ -342,7 +369,6 @@ function App() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                <LogOut size={12} style={{ transform: 'rotate(180deg)' }} />
                 Sign In to Platform
               </button>
             )}

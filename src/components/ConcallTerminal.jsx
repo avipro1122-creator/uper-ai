@@ -22,7 +22,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
-export default function ConcallTerminal({ user, onRequireLogin }) {
+export default function ConcallTerminal({ user, onRequireLogin, initialStock, onClose }) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -30,6 +30,9 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
   const [error, setError] = useState(null);
   const [selectedStock, setSelectedStock] = useState(null);
   const [analysisData, setAnalysisData] = useState(null);
+  
+  const hasAutoLoaded = useRef(false);
+  const abortControllerRef = useRef(null);
   
   // History & Bookmarks (persisted in localStorage)
   const [searchHistory, setSearchHistory] = useState(() => {
@@ -67,14 +70,32 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
   const dropdownRef = useRef(null);
 
   // Auto-fetch default stock (Reliance) on first load if no stock selected
+  // Handle initialStock if passed as a prop
   useEffect(() => {
-    if (!selectedStock && !analysisData) {
+    if (initialStock) {
+      handleSelectStock(initialStock);
+    }
+  }, [initialStock]);
+
+  // Auto-fetch default stock (Reliance) on first load if no stock selected
+  useEffect(() => {
+    if (!initialStock && !hasAutoLoaded.current && !selectedStock && !analysisData) {
+      hasAutoLoaded.current = true;
       handleSelectStock({
         'nse-code': 'RELIANCE',
         name: 'Reliance Industries Ltd.',
         'bse-code': '500325'
       });
     }
+  }, [initialStock]);
+
+  // Cleanup pending fetches on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   // Save history & bookmarks to localStorage
@@ -123,13 +144,26 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
 
   // Perform Concall analysis fetch
   const fetchAnalysis = async (stock) => {
+    if (!stock) return;
+
+    // Abort previous in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     setError(null);
     try {
       const symbol = stock['nse-code'] || stock['bse-code'] || stock.symbol;
+      if (!symbol) return;
       const name = stock.name;
       
-      const res = await fetch(`/api/concall/analyze?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`);
+      const res = await fetch(`/api/concall/analyze?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`, {
+        signal: controller.signal
+      });
       if (!res.ok) {
         throw new Error(`Server error: ${res.status}`);
       }
@@ -147,19 +181,37 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
         throw new Error('Analysis failed or returned empty data.');
       }
     } catch (err) {
+      if (err.name === 'AbortError') {
+        return; // Silence aborted requests to avoid overwriting state
+      }
       console.error(err);
       setError(err.message || 'Failed to generate concall analysis. Please try again.');
     } finally {
-      setLoading(false);
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+      }
     }
   };
 
   const handleSelectStock = (stock) => {
     setSelectedStock(stock);
+    setAnalysisData(null); // Clear previous data to prevent UI flashes
     setQuery('');
     setSearchResults([]);
     setShowSearchDropdown(false);
     fetchAnalysis(stock);
+  };
+
+  const handleClose = () => {
+    setSelectedStock(null);
+    setAnalysisData(null);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (onClose) {
+      onClose();
+    }
   };
 
   // Bookmark toggler
@@ -582,6 +634,13 @@ export default function ConcallTerminal({ user, onRequireLogin }) {
 
                 {/* Toolbar Options */}
                 <div className="tw-flex tw-flex-wrap tw-items-center tw-gap-2 print-hidden">
+                  <button 
+                    onClick={handleClose}
+                    className="tw-flex tw-items-center tw-gap-1.5 tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-text-xs tw-px-3 tw-py-1.5 tw-rounded tw-text-bloomberg-mutedText hover:tw-text-white hover:tw-border-bloomberg-mutedText tw-transition-colors"
+                    title="Close Report"
+                  >
+                    ✕ Close
+                  </button>
                   <button 
                     onClick={copyToClipboard}
                     className="tw-flex tw-items-center tw-gap-1.5 tw-bg-bloomberg-card tw-border tw-border-bloomberg-border tw-text-xs tw-px-3 tw-py-1.5 tw-rounded tw-text-bloomberg-mutedText hover:tw-text-white hover:tw-border-bloomberg-mutedText tw-transition-colors"

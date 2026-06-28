@@ -4909,4 +4909,10 @@ body {
   }
 }
 
-
+/* Stock Change Indicator Color Utility Classes */
+.change-positive {
+  color: #00c9a7 !important;
+}
+.change-negative {
+  color: #ff4a5a !important;
+}

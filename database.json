@@ -17,34 +17,34 @@
       "id": "1",
       "ticker": "RELIANCE",
       "name": "Reliance Industries Ltd.",
-      "price": 2945.6,
-      "change": "+1.85%",
-      "marketCap": "₹19.92 Lakh Cr",
-      "peRatio": "27.4",
-      "divYield": "0.34%",
-      "roe": "9.6%"
+      "price": 1318.10,
+      "change": "+0.34%",
+      "marketCap": "₹17.84 Lakh Cr",
+      "peRatio": "22.9",
+      "divYield": "0.46%",
+      "roe": "8.91%"
     },
     {
       "id": "2",
       "ticker": "TATAPOWER",
       "name": "Tata Power Company Ltd.",
-      "price": 435.25,
-      "change": "+4.12%",
-      "marketCap": "₹1.39 Lakh Cr",
-      "peRatio": "34.8",
-      "divYield": "0.52%",
-      "roe": "12.4%"
+      "price": 388.95,
+      "change": "-1.06%",
+      "marketCap": "₹1.24 Lakh Cr",
+      "peRatio": "32.3",
+      "divYield": "0.64%",
+      "roe": "10.2%"
     },
     {
       "id": "3",
       "ticker": "TATAMOTORS",
       "name": "Tata Motors Ltd.",
-      "price": 960.4,
-      "change": "+2.11%",
-      "marketCap": "₹3.18 Lakh Cr",
-      "peRatio": "11.2",
-      "divYield": "0.60%",
-      "roe": "22.4%"
+      "price": 431.90,
+      "change": "+4.98%",
+      "marketCap": "₹1.59 Lakh Cr",
+      "peRatio": "40.2",
+      "divYield": "0.93%",
+      "roe": "34.0%"
     }
   ],
   "news": [

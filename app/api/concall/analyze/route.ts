@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   const symbol = searchParams.get('symbol')?.trim().toUpperCase() || '';
   const companyName = searchParams.get('name')?.trim() || symbol;
 
-  if (!symbol) {
+  if (!symbol || symbol.trim() === '' || symbol.toLowerCase() === 'undefined' || symbol.toLowerCase() === 'null') {
     return NextResponse.json(
       { error: 'Bad Request. Missing "symbol" parameter.' },
       { status: 400 }

@@ -9,8 +9,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get('symbol');
 
-  // 1. Request Query validation
-  if (!symbol || symbol.trim() === '') {
+  if (!symbol || symbol.trim() === '' || symbol.toLowerCase() === 'undefined' || symbol.toLowerCase() === 'null') {
     return NextResponse.json(
       { error: 'Bad Request. Missing or empty "symbol" query parameter.' },
       { status: 400 }
