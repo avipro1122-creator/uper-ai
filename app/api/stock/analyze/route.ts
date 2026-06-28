@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { checkRateLimit } from '../../../../lib/rateLimit';
-import { generateFallbackReport } from '../../../../lib/fallbackReports';
+import { generateFallbackReport, transformReportToQ2FY27 } from '../../../../lib/fallbackReports';
 
 export const dynamic = 'force-dynamic';
 
@@ -103,6 +103,7 @@ export async function GET(request: Request) {
   }
 
   if (concallReport) {
+    concallReport = transformReportToQ2FY27(concallReport);
     const analysisResult = {
       summary: concallReport.executiveSummary.overallSentiment || concallReport.executiveSummary.bullets[0],
       peRatio: concallReport.keyNumbers.roe || "N/A",

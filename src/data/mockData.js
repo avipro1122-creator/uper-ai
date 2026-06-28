@@ -223,6 +223,42 @@ export const DEFAULT_RESPONSES = {
   }
 };
 
+const transformMockToQ2FY27 = (res) => {
+  if (!res) return res;
+  let str = JSON.stringify(res);
+  // Replace fiscal year references:
+  // "FY25" -> "FY27", "FY26" -> "FY27"
+  str = str.replace(/FY25/g, 'FY27').replace(/FY26/g, 'FY27');
+  
+  // Replace years:
+  // "2025" -> "2026"
+  str = str.replace(/2025/g, '2026');
+  
+  // Replace Q4, Q3, Q1 references with Q2
+  str = str.replace(/Q4 Performance/gi, 'Q2 Performance')
+           .replace(/Q4 numbers/gi, 'Q2 numbers')
+           .replace(/Q4/g, 'Q2')
+           .replace(/Q3/g, 'Q2')
+           .replace(/Q1/g, 'Q2');
+  
+  const modified = JSON.parse(str);
+  
+  // Update chart data labels if they exist
+  if (modified.chartData && Array.isArray(modified.chartData)) {
+    modified.chartData = modified.chartData.map(item => {
+      if (item.label) {
+        return {
+          ...item,
+          label: item.label.replace(/FY25/g, 'FY27').replace(/FY26/g, 'FY27').replace(/Q[1-4]/g, 'Q2')
+        };
+      }
+      return item;
+    });
+  }
+  
+  return modified;
+};
+
 export const getResponse = (query, model) => {
   const cleanQuery = query.toLowerCase();
   let key = "";
@@ -234,10 +270,10 @@ export const getResponse = (query, model) => {
   } else if (cleanQuery.includes("solar") || cleanQuery.includes("tata power") || cleanQuery.includes("policy")) {
     key = "tata_power";
   } else if (cleanQuery.includes("nifty") || cleanQuery.includes("sensex") || cleanQuery.includes("market")) {
-    return DEFAULT_RESPONSES.nifty[model];
+    return transformMockToQ2FY27(DEFAULT_RESPONSES.nifty[model]);
   } else {
     return DEFAULT_RESPONSES.generic[model];
   }
 
-  return MOCK_RESPONSES[key][model];
+  return transformMockToQ2FY27(MOCK_RESPONSES[key][model]);
 };

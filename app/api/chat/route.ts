@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { generateFallbackReport } from '../../../lib/fallbackReports';
+import { generateFallbackReport, transformReportToQ2FY27 } from '../../../lib/fallbackReports';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +73,7 @@ function getCompanyData(symbol: string, name: string) {
             if (aYr !== bYr) return bYr.localeCompare(aYr);
             return (bParts[0] || '').localeCompare(aParts[0] || '');
           });
-          return db[cleanSymbol][sorted[0]];
+          return transformReportToQ2FY27(db[cleanSymbol][sorted[0]]);
         }
       }
     } catch (e) {
@@ -82,7 +82,7 @@ function getCompanyData(symbol: string, name: string) {
   }
   
   // 2. Return fallback report
-  return generateFallbackReport(cleanSymbol, name);
+  return transformReportToQ2FY27(generateFallbackReport(cleanSymbol, name));
 }
 
 export async function POST(request: Request) {

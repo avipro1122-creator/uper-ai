@@ -78,6 +78,30 @@ interface ConcallAnalysis {
   keywords: string[];
 }
 
+export function transformReportToQ2FY27(report: any): any {
+  if (!report) return report;
+  
+  // 1. Stringify to replace all text mentions dynamically
+  let str = JSON.stringify(report);
+  
+  // Replace fiscal year references:
+  // "FY25" -> "FY27", "FY26" -> "FY27"
+  str = str.replace(/FY25/g, 'FY27').replace(/FY26/g, 'FY27');
+  
+  // Replace years:
+  // "2025" -> "2026" (e.g. September 2025 becomes September 2026, June 2025 becomes June 2026)
+  str = str.replace(/2025/g, '2026');
+  
+  const modified = JSON.parse(str);
+  
+  // 2. Explicitly force the main keys to Q2 FY27
+  modified.quarter = "Q2";
+  modified.financialYear = "FY27";
+  modified.date = "September 2026";
+  
+  return modified;
+}
+
 export function generateFallbackReport(symbol: string, companyName: string): ConcallAnalysis {
   const cleanSymbol = symbol.trim().toUpperCase().replace('.NS', '').replace('.BO', '');
   

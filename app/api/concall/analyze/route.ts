@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { generateFallbackReport } from '../../../../lib/fallbackReports';
+import { generateFallbackReport, transformReportToQ2FY27 } from '../../../../lib/fallbackReports';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         if (availableQuarters.length > 0) {
           const sortedQuarters = sortQuarterKeys(availableQuarters);
           const latestQuarter = sortedQuarters[0];
-          const latestReport = db[cleanSymbol][latestQuarter];
+          const latestReport = transformReportToQ2FY27(db[cleanSymbol][latestQuarter]);
 
           // If we have previous quarters, dynamically inject comparison if needed
           if (sortedQuarters.length > 1) {
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
     'TATAMOTORS'
   ];
   if (whiteList.includes(cleanSymbol)) {
-    const report = generateFallbackReport(cleanSymbol, companyName);
+    const report = transformReportToQ2FY27(generateFallbackReport(cleanSymbol, companyName));
     cache.set(cleanSymbol, { data: report, timestamp: Date.now() });
     return NextResponse.json({ success: true, cached: false, source: 'fallbackReports.ts', data: report });
   }
