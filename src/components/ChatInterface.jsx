@@ -416,6 +416,54 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
     fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
   };
 
+  const parseInlineMarkdown = (text) => {
+    if (!text) return "";
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={idx} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const renderMarkdown = (text) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      let content = line.trim();
+      
+      if (content.startsWith('### ')) {
+        return <h3 key={idx} style={{ color: 'var(--accent-color)', fontSize: '1.1rem', fontWeight: 600, margin: '14px 0 8px 0' }}>{parseInlineMarkdown(content.slice(4))}</h3>;
+      }
+      if (content.startsWith('#### ')) {
+        return <h4 key={idx} style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, margin: '12px 0 6px 0' }}>{parseInlineMarkdown(content.slice(5))}</h4>;
+      }
+      if (content.startsWith('## ')) {
+        return <h2 key={idx} style={{ color: 'var(--accent-color)', fontSize: '1.25rem', fontWeight: 600, margin: '16px 0 10px 0' }}>{parseInlineMarkdown(content.slice(3))}</h2>;
+      }
+      
+      if (content.startsWith('* ') || content.startsWith('- ') || content.startsWith('• ')) {
+        return (
+          <div key={idx} style={{ display: 'flex', gap: '8px', margin: '4px 0 4px 12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <span style={{ color: 'var(--accent-color)' }}>•</span>
+            <span>{parseInlineMarkdown(content.slice(2))}</span>
+          </div>
+        );
+      }
+
+      if (content === '') {
+        return <div key={idx} style={{ height: '8px' }} />;
+      }
+      
+      return (
+        <p key={idx} style={{ margin: '6px 0', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+          {parseInlineMarkdown(line)}
+        </p>
+      );
+    });
+  };
+
   const generateSynthesizedDashboard = (query) => {
     const cleanQuery = query.toLowerCase();
     const words = query.split(/\s+/).map(w => w.toUpperCase().replace(/[^A-Z]/g, ""));
@@ -502,6 +550,14 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
     }
 
     const cleanQuery = text.toLowerCase();
+    const isConversationalQuery = cleanQuery.split(/\s+/).length > 3 || 
+                                 cleanQuery.includes("why") || 
+                                 cleanQuery.includes("how") || 
+                                 cleanQuery.includes("compare") ||
+                                 cleanQuery.includes("good") ||
+                                 cleanQuery.includes("bad") ||
+                                 cleanQuery.includes("is") ||
+                                 cleanQuery.includes("should");
     
     // Check if query is a direct search for a local company
     const localMatch = findLocalStock(text);
@@ -713,7 +769,22 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
           setMessages(prev => [...prev, botMsg]);
           setIsTyping(false);
         } else {
-          const fallbackMsg = generateSynthesizedDashboard(text);
+          let fallbackMsg;
+          if (isConversationalQuery) {
+            fallbackMsg = {
+              sender: 'bot',
+              sources: ["UperAI Research"],
+              text: `Here is a general market overview regarding your query "${text}":
+
+* **Market Sentiment**: The business model and industry dynamics are currently being discussed by analysts in the context of growth prospects, market share, and unit economics.
+* **Profitability & Operations**: Key focus points include operating margins, customer acquisition costs, and capacity expansion strategies.
+* **Outlook**: Long-term value creation depends heavily on capital allocation efficiency and execution performance over upcoming quarters.
+
+*Note: Operating in offline mode. Please verify with the latest financial disclosures.*`
+            };
+          } else {
+            fallbackMsg = generateSynthesizedDashboard(text);
+          }
           setMessages(prev => [...prev, fallbackMsg]);
           setIsTyping(false);
         }
@@ -728,7 +799,22 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
         if (stock) {
           await fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
         } else {
-          const fallbackMsg = generateSynthesizedDashboard(text);
+          let fallbackMsg;
+          if (isConversationalQuery) {
+            fallbackMsg = {
+              sender: 'bot',
+              sources: ["UperAI Research"],
+              text: `Here is a general market overview regarding your query "${text}":
+
+* **Market Sentiment**: The business model and industry dynamics are currently being discussed by analysts in the context of growth prospects, market share, and unit economics.
+* **Profitability & Operations**: Key focus points include operating margins, customer acquisition costs, and capacity expansion strategies.
+* **Outlook**: Long-term value creation depends heavily on capital allocation efficiency and execution performance over upcoming quarters.
+
+*Note: Operating in offline mode. Please verify with the latest financial disclosures.*`
+            };
+          } else {
+            fallbackMsg = generateSynthesizedDashboard(text);
+          }
           setMessages(prev => [...prev, fallbackMsg]);
           setIsTyping(false);
         }
@@ -882,12 +968,12 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
                         </div>
 
                         {msg.text ? (
-                          <div className="insights-summary" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
-                            {msg.text}
+                          <div className="insights-summary" style={{ lineHeight: '1.6' }}>
+                            {renderMarkdown(msg.text)}
                           </div>
                         ) : (
                           <div className="insights-summary">
-                            {msg.summary}
+                            {renderMarkdown(msg.summary)}
                           </div>
                         )}
 
