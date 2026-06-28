@@ -206,6 +206,19 @@ function App() {
     );
   }
 
+  if (activeView === 'chat') {
+    return (
+      <ChatInterface
+        user={user}
+        onRequireLogin={() => navigate('auth', '/login?limit=2')}
+        initialQuery={landingSearchQuery}
+        onClearInitialQuery={() => setLandingSearchQuery('')}
+        onNavigate={navigate}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)', color: 'var(--text-primary)' }}>
       {/* Background radial glow behind center area */}
@@ -347,6 +360,8 @@ function App() {
               onRequireLogin={() => navigate('auth', '/login?limit=2')} 
               initialQuery={landingSearchQuery}
               onClearInitialQuery={() => setLandingSearchQuery('')}
+              onNavigate={navigate}
+              onLogout={handleLogout}
             />
           ) : activeView === 'concall' ? (
             <ConcallTerminal 

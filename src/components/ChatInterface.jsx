@@ -9,13 +9,22 @@ import {
   LineChart, 
   ShieldAlert,
   Activity,
-  Star,
   Compass,
   Clock,
-  Sparkles,
   ArrowUpRight,
-  TrendingDown,
-  Trash2
+  Trash2,
+  Plus,
+  Bell,
+  Moon,
+  User,
+  PanelLeftClose,
+  BarChart3,
+  Target,
+  Bot,
+  Wallet,
+  MessageSquare,
+  LogIn,
+  LogOut
 } from 'lucide-react';
 import { getResponse } from '../data/mockData';
 import InteractiveChart from './InteractiveChart';
@@ -123,7 +132,25 @@ const suggestionPills = [
   { label: "Small Caps", query: "Analyze undervalued small-caps with earnings breakouts" }
 ];
 
-export default function ChatInterface({ user, onRequireLogin, initialQuery, onClearInitialQuery }) {
+const marketStrip = [
+  { name: "Nifty 50", value: "24,056", change: "+0.14%", trend: "up" },
+  { name: "Sensex", value: "77,100", change: "+0.14%", trend: "up" },
+  { name: "Bank Nifty", value: "58,177", change: "+0.05%", trend: "up" },
+  { name: "Nifty IT", value: "27,331", change: "-0.86%", trend: "down" },
+  { name: "Midcap 100", value: "72,200", change: "--", trend: "flat" },
+  { name: "India VIX", value: "13.05", change: "-2.54%", trend: "down" }
+];
+
+const orionPrompts = [
+  { icon: BarChart3, title: "Portfolio Review", text: "Review my portfolio risk & diversification", query: "Review my portfolio risk and diversification" },
+  { icon: LineChart, title: "Technical Analysis", text: "RSI + MACD analysis for HDFC Bank", query: "RSI and MACD technical analysis for HDFC Bank" },
+  { icon: Search, title: "Stock Deep Dive", text: "Analyze Reliance - price, fundamentals, news", query: "Analyze Reliance price, fundamentals, and recent news" },
+  { icon: Wallet, title: "Compare Stocks", text: "TCS vs Infosys - which is better value?", query: "Compare TCS vs Infosys and tell me which is better value" },
+  { icon: Compass, title: "Market & FII/DII", text: "Why is Nifty falling today?", query: "Why is Nifty falling today?" },
+  { icon: Target, title: "Smart Ideas", text: "Best low-debt stocks for long-term growth", query: "Best low debt Indian stocks for long-term growth" }
+];
+
+export default function ChatInterface({ user, onRequireLogin, initialQuery, onClearInitialQuery, onNavigate, onLogout }) {
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem('uperai_chat_messages');
@@ -840,67 +867,135 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
     }));
   };
 
-  return (
-    <div className="chat-interface-grid" style={{ zIndex: 1 }}>
-      {/* Middle Workspace: Chat history & input centerpiece */}
-      <div className="main-content-column">
-        {messages.length > 0 && (
-          <div className="chat-header-bar" style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 24px',
-            borderBottom: '1px solid var(--border-subtle)',
-            background: 'rgba(17, 24, 39, 0.7)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            zIndex: 10
-          }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={12} style={{ color: 'var(--accent-color)' }} />
-              Equity Research Chat
-            </span>
-            <button 
-              onClick={() => {
-                if (window.confirm("Clear all messages and start a new session?")) {
-                  setMessages([]);
-                  localStorage.removeItem('uperai_chat_messages');
-                }
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                color: 'var(--color-error)',
-                padding: '4px 10px',
-                borderRadius: '12px',
-                fontSize: '0.72rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontWeight: 500
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                e.currentTarget.style.borderColor = 'var(--color-error)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
-              }}
+  const handleNewConversation = () => {
+    setMessages([]);
+    setInputValue('');
+    setSearchResults([]);
+    setShowDropdown(false);
+    localStorage.removeItem('uperai_chat_messages');
+  };
+
+  const renderComposer = (variant = "dock") => (
+    <div className={`orion-composer-wrap ${variant === "hero" ? "hero" : ""}`}>
+      {showDropdown && searchResults.length > 0 && (
+        <div className="autocomplete-dropdown orion-autocomplete">
+          {searchResults.map((stock, idx) => (
+            <div
+              key={idx}
+              className="autocomplete-item"
+              onClick={() => handleSelectStock(stock)}
             >
-              <Trash2 size={12} />
-              <span>Reset Chat</span>
-            </button>
+              <div className="autocomplete-symbol-wrap">
+                <span className="autocomplete-symbol">{stock.symbol}</span>
+                <span className="autocomplete-exchange">{stock.exchDisp || (stock.symbol.endsWith('.NS') ? 'NSE' : 'BSE')}</span>
+              </div>
+              <span className="autocomplete-name">{stock.longname || stock.shortname}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="orion-composer">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Ask Orion about stocks..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSend();
+          }}
+        />
+        <button className="orion-bot-btn" type="button" aria-label="Assistant mode">
+          <Bot size={16} />
+        </button>
+        <button className="orion-send-btn" type="button" onClick={() => handleSend()} aria-label="Send message">
+          <Send size={18} />
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="orion-shell">
+      <header className="orion-topbar">
+        <button className="orion-logo" type="button" onClick={() => onNavigate?.('home', '/')}>
+          <span>V</span>
+        </button>
+        <nav className="orion-main-nav" aria-label="Primary">
+          <button className="active" type="button">Orion</button>
+          <button type="button" onClick={() => onNavigate?.('home', '/')}>Overview</button>
+          <button type="button" onClick={() => onNavigate?.('concall', '/concall')}>Screener</button>
+          <button type="button" onClick={() => onNavigate?.('roadmap', '/roadmap')}>Journal</button>
+          <button type="button">Community</button>
+        </nav>
+        <div className="orion-top-actions">
+          <button type="button" aria-label="Notifications"><Bell size={18} /></button>
+          <button type="button" aria-label="Theme"><Moon size={18} /></button>
+          {user ? (
+            <button type="button" onClick={onLogout} aria-label="Sign out"><LogOut size={18} /></button>
+          ) : (
+            <button type="button" onClick={onRequireLogin} aria-label="Sign in"><LogIn size={18} /></button>
+          )}
+        </div>
+      </header>
+
+      <div className="orion-market-strip">
+        {marketStrip.map((item) => (
+          <div className="orion-ticker" key={item.name}>
+            <span>{item.name}</span>
+            <strong>{item.value}</strong>
+            <em className={item.trend}>{item.change}</em>
           </div>
+        ))}
+      </div>
+
+      <div className={`orion-workspace ${user ? "with-history" : ""}`}>
+        {user && (
+          <aside className="orion-history">
+            <div className="orion-history-head">
+              <span><Clock size={15} /> Chat History</span>
+              <button type="button" aria-label="Collapse history"><PanelLeftClose size={16} /></button>
+            </div>
+            <button className="orion-new-chat" type="button" onClick={handleNewConversation}>
+              <Plus size={17} />
+              <span>New Conversation</span>
+            </button>
+            <div className="orion-history-group">Today</div>
+            {messages.length > 0 ? (
+              <button className="orion-history-item active" type="button">
+                <MessageSquare size={15} />
+                <span>
+                  <strong>{messages.find((msg) => msg.sender === 'user')?.text || "Current market research"}</strong>
+                  <small>{messages.length} messages - saved locally</small>
+                </span>
+              </button>
+            ) : (
+              <div className="orion-history-empty">Start a conversation to save it here.</div>
+            )}
+          </aside>
         )}
-        
-        {/* Message Space */}
-        <div className="chat-area-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+        <main className="orion-chat-main">
+          <div className="orion-chat-brand">
+            <div className="orion-orb small"></div>
+            <div>
+              <h1>ORION</h1>
+              <p>Your data-driven stock analysis assistant</p>
+            </div>
+          </div>
+
+          <button className="orion-import" type="button">
+            <TrendingUp size={16} />
+            <span>Import Portfolio</span>
+          </button>
+
+          <div className="orion-chat-scroll">
           {messages.length === 0 ? (
-            <div className="welcome-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: '100%' }}>
+            <div className="orion-empty-state">
               
+              <div className="orion-orb"></div>
+              <h2>What can Orion do?</h2>
+              <p>Your AI investment advisor for the Indian markets</p>
+              <button className="orion-learn" type="button">Learn more <ArrowUpRight size={13} /></button>
               {/* Centerpiece Search Area */}
               <div className="centerpiece-search-wrapper" style={{ width: '100%', maxWidth: '800px', margin: 'auto 0' }}>
                 <div className="centerpiece-input-bar">
@@ -921,6 +1016,18 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
                     <ArrowUpRight size={16} />
                   </button>
                 </div>
+              </div>
+
+              <div className="orion-prompt-grid">
+                {orionPrompts.map(({ icon: Icon, title, text, query }) => (
+                  <button key={title} type="button" className="orion-prompt-card" onClick={() => handleSend(query)}>
+                    <Icon size={18} />
+                    <span>
+                      <strong>{title}</strong>
+                      <small>{text}</small>
+                    </span>
+                  </button>
+                ))}
               </div>
 
             </div>
@@ -1048,54 +1155,15 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input panel dock (at bottom of column) */}
-        {messages.length > 0 && (
-          <footer className="input-dock" style={{ background: 'transparent', borderTop: '1px solid var(--border-subtle)' }}>
-            <div className="input-form-wrapper" style={{ position: 'relative' }}>
-              
-              {/* Autocomplete Dropdown List */}
-              {showDropdown && searchResults.length > 0 && (
-                <div className="autocomplete-dropdown">
-                  {searchResults.map((stock, idx) => (
-                    <div 
-                      key={idx} 
-                      className="autocomplete-item"
-                      onClick={() => handleSelectStock(stock)}
-                    >
-                      <div className="autocomplete-symbol-wrap">
-                        <span className="autocomplete-symbol">{stock.symbol}</span>
-                        <span className="autocomplete-exchange">{stock.exchDisp || (stock.symbol.endsWith('.NS') ? 'NSE' : 'BSE')}</span>
-                      </div>
-                      <span className="autocomplete-name">{stock.longname || stock.shortname}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="input-bar" style={{ background: 'var(--bg-card)' }}>
-                <Search size={18} style={{ color: 'var(--text-secondary)', marginRight: '12px' }} />
-                <input
-                  type="text"
-                  className="input-field"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Search NSE/BSE stocks or ask a question..."
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSend();
-                  }}
-                />
-                <div className="action-buttons">
-                  <button className="submit-btn" onClick={() => handleSend()}>
-                    <Send size={16} />
-                  </button>
-                </div>
-              </div>
+          <footer className="orion-bottom-dock">
+            <div className="orion-query-count">
+              <span>9 queries remaining this month</span>
+              <button type="button">Upgrade</button>
             </div>
+            {renderComposer(messages.length === 0 ? "hero" : "dock")}
           </footer>
-        )}
+        </main>
       </div>
-
-      {/* Right Intelligence Sidebar removed as requested */}
     </div>
   );
 }

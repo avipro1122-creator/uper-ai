@@ -167,14 +167,22 @@ CRITICAL RULES:
 
     let responseText = "";
     if (geminiApiKey.startsWith('sk-')) {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const isDeepSeek = geminiApiKey.length === 35;
+      const apiEndpoint = isDeepSeek 
+        ? 'https://api.deepseek.com/chat/completions' 
+        : 'https://api.openai.com/v1/chat/completions';
+      const modelName = isDeepSeek 
+        ? 'deepseek-chat' 
+        : 'gpt-4o-mini';
+
+      const res = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${geminiApiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: modelName,
           messages: [
             { role: 'user', content: prompt }
           ],
@@ -184,7 +192,8 @@ CRITICAL RULES:
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`OpenAI API returned status ${res.status}: ${errText}`);
+        const providerName = isDeepSeek ? 'DeepSeek' : 'OpenAI';
+        throw new Error(`${providerName} API returned status ${res.status}: ${errText}`);
       }
 
       const data = await res.json();

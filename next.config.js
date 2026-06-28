@@ -3,6 +3,7 @@ import { withEve } from "eve/next";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  outputFileTracingRoot: process.cwd(),
   typescript: {
     ignoreBuildErrors: true,
   },
