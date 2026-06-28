@@ -2258,8 +2258,10 @@ body {
 .orion-shell .chat-bubble {
   max-width: min(820px, 92%);
   border-radius: 14px;
-  padding: 18px;
+  padding: 20px 24px;
   box-shadow: 0 8px 20px rgba(16, 24, 40, 0.05);
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
 .orion-shell .chat-bubble.user {
@@ -2275,10 +2277,13 @@ body {
 }
 
 .orion-shell .bot-meta-info,
-.orion-shell .insights-summary,
-.orion-shell .collapsible-content,
 .orion-shell .metric-label {
   color: #667085;
+}
+
+.orion-shell .insights-summary,
+.orion-shell .chat-section-content {
+  color: #101827;
 }
 
 .orion-shell .bot-tag,

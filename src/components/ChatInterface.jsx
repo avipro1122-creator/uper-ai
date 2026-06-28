@@ -445,10 +445,12 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
 
   const parseInlineMarkdown = (text) => {
     if (!text) return "";
-    const parts = text.split(/(\*\*.*?\*\*)/g);
+    // Normalize triple asterisks to double asterisks for clean bolding
+    const cleanedText = text.replace(/\*\*\*/g, '**');
+    const parts = cleanedText.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, idx) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={idx} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+        return <strong key={idx} style={{ color: 'inherit', fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
       }
       return part;
     });
@@ -461,30 +463,30 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
       let content = line.trim();
       
       if (content.startsWith('### ')) {
-        return <h3 key={idx} style={{ color: 'var(--accent-color)', fontSize: '1.1rem', fontWeight: 600, margin: '14px 0 8px 0' }}>{parseInlineMarkdown(content.slice(4))}</h3>;
+        return <h3 key={idx} style={{ color: 'var(--orion-text, #101827)', fontSize: '1.25rem', fontWeight: 700, margin: '18px 0 8px 0' }}>{parseInlineMarkdown(content.slice(4))}</h3>;
       }
       if (content.startsWith('#### ')) {
-        return <h4 key={idx} style={{ color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600, margin: '12px 0 6px 0' }}>{parseInlineMarkdown(content.slice(5))}</h4>;
+        return <h4 key={idx} style={{ color: 'var(--orion-text, #101827)', fontSize: '1.1rem', fontWeight: 700, margin: '14px 0 6px 0' }}>{parseInlineMarkdown(content.slice(5))}</h4>;
       }
       if (content.startsWith('## ')) {
-        return <h2 key={idx} style={{ color: 'var(--accent-color)', fontSize: '1.25rem', fontWeight: 600, margin: '16px 0 10px 0' }}>{parseInlineMarkdown(content.slice(3))}</h2>;
+        return <h2 key={idx} style={{ color: 'var(--orion-text, #101827)', fontSize: '1.4rem', fontWeight: 700, margin: '22px 0 10px 0' }}>{parseInlineMarkdown(content.slice(3))}</h2>;
       }
       
       if (content.startsWith('* ') || content.startsWith('- ') || content.startsWith('• ')) {
         return (
-          <div key={idx} style={{ display: 'flex', gap: '8px', margin: '4px 0 4px 12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            <span style={{ color: 'var(--accent-color)' }}>•</span>
+          <div key={idx} style={{ display: 'flex', gap: '8px', margin: '6px 0 6px 16px', fontSize: '1.05rem', color: 'inherit', lineHeight: '1.6' }}>
+            <span style={{ color: 'var(--orion-blue, #2f8cf3)', fontWeight: 'bold' }}>•</span>
             <span>{parseInlineMarkdown(content.slice(2))}</span>
           </div>
         );
       }
 
       if (content === '') {
-        return <div key={idx} style={{ height: '8px' }} />;
+        return <div key={idx} style={{ height: '10px' }} />;
       }
       
       return (
-        <p key={idx} style={{ margin: '6px 0', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+        <p key={idx} style={{ margin: '8px 0', fontSize: '1.05rem', color: 'inherit', lineHeight: '1.6' }}>
           {parseInlineMarkdown(line)}
         </p>
       );
@@ -1038,101 +1040,92 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
                   <div>{msg.text}</div>
                 ) : (
                   <div>
-                    {msg.sections ? (
-                      /* ONLY render the three sections in front */
-                      <div className="collapsible-sections" style={{ margin: 0 }}>
-                        {msg.sections.map((section, sIdx) => {
-                          const isExpanded = !!expandedSectionIdx[`${msgIdx}-${sIdx}`];
+                    {/* Unified bot header metadata */}
+                    <div className="bot-meta-info">
+                      <span className="bot-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Activity size={12} />
+                        UperAI Analysis
+                      </span>
+                      {msg.sources && msg.sources.length > 0 && (
+                        <span>Sources: {msg.sources.join(', ')}</span>
+                      )}
+                    </div>
+
+                    {msg.text ? (
+                      <div className="insights-summary" style={{ lineHeight: '1.6' }}>
+                        {renderMarkdown(msg.text)}
+                      </div>
+                    ) : (
+                      msg.summary && (
+                        <div className="insights-summary" style={{ lineHeight: '1.6' }}>
+                          {renderMarkdown(msg.summary)}
+                        </div>
+                      )
+                    )}
+
+                    {/* Inline sections flow - simple just like ChatGPT */}
+                    {msg.sections && msg.sections.length > 0 && (
+                      <div className="chat-sections-flow" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {msg.sections.map((section, sIdx) => (
+                          <div key={sIdx} className="chat-section">
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--orion-text, #101827)', margin: '16px 0 10px 0' }}>
+                              {section.title}
+                            </h3>
+                            <div className="chat-section-content" style={{ fontSize: '1.05rem', color: 'var(--orion-text, #101827)', lineHeight: '1.6' }}>
+                              {renderMarkdown(section.content)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {msg.metrics && (
+                      <div className="metrics-grid">
+                        {msg.metrics.map((metric, mIdx) => {
+                          const isNegative = metric.change && (metric.change.includes('-') || metric.change.toLowerCase().includes('down'));
                           return (
-                            <div className="collapsible-item" key={sIdx}>
-                              <div 
-                                className="collapsible-header" 
-                                onClick={() => toggleSection(msgIdx, sIdx)}
-                                style={{ borderBottom: isExpanded ? '1px solid var(--border-subtle)' : 'none' }}
-                              >
-                                <span>{section.title}</span>
-                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                              </div>
-                              {isExpanded && (
-                                <div className="collapsible-content" style={{ whiteSpace: 'pre-line' }}>
-                                  {section.content}
-                                </div>
+                            <div className="metric-card" key={mIdx}>
+                              <span className="metric-label">{metric.label}</span>
+                              <span className="metric-value">{metric.value}</span>
+                              {metric.change && (
+                                <span className={`metric-change ${isNegative ? 'negative' : ''}`}>
+                                  {metric.change}
+                                </span>
                               )}
                             </div>
                           );
                         })}
                       </div>
-                    ) : (
-                      /* Standard textual / conversational display */
-                      <div>
-                        {/* Unified bot header metadata */}
-                        <div className="bot-meta-info">
-                          <span className="bot-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Activity size={12} />
-                            UperAI Analysis
-                          </span>
-                          <span>Sources: {msg.sources?.join(', ')}</span>
-                        </div>
+                    )}
 
-                        {msg.text ? (
-                          <div className="insights-summary" style={{ lineHeight: '1.6' }}>
-                            {renderMarkdown(msg.text)}
-                          </div>
-                        ) : (
-                          <div className="insights-summary">
-                            {renderMarkdown(msg.summary)}
-                          </div>
-                        )}
+                    {msg.chartData && (
+                      <InteractiveChart data={msg.chartData} title={msg.chartTitle} />
+                    )}
 
-                        {msg.metrics && (
-                          <div className="metrics-grid">
-                            {msg.metrics.map((metric, mIdx) => {
-                              const isNegative = metric.change && (metric.change.includes('-') || metric.change.toLowerCase().includes('down'));
-                              return (
-                                <div className="metric-card" key={mIdx}>
-                                  <span className="metric-label">{metric.label}</span>
-                                  <span className="metric-value">{metric.value}</span>
-                                  {metric.change && (
-                                    <span className={`metric-change ${isNegative ? 'negative' : ''}`}>
-                                      {metric.change}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {msg.chartData && (
-                          <InteractiveChart data={msg.chartData} title={msg.chartTitle} />
-                        )}
-
-                        {msg.tableData && (
-                          <div className="table-widget-container">
-                            <table className="widget-table">
-                              <thead>
-                                <tr>
-                                  <th>Company</th>
-                                  <th>P/E</th>
-                                  <th>PEG</th>
-                                  <th>ROE</th>
-                                  <th>EBITDA Margin</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {msg.tableData.map((row, rIdx) => (
-                                  <tr key={rIdx}>
-                                    <td className="stock-pill">{row.name} ({row.ticker})</td>
-                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.pe}</td>
-                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.peg}</td>
-                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.roe}</td>
-                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.ebitda}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+                    {msg.tableData && (
+                      <div className="table-widget-container">
+                        <table className="widget-table">
+                          <thead>
+                            <tr>
+                              <th>Company</th>
+                              <th>P/E</th>
+                              <th>PEG</th>
+                              <th>ROE</th>
+                              <th>EBITDA Margin</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {msg.tableData.map((row, rIdx) => (
+                              <tr key={rIdx}>
+                                <td className="stock-pill">{row.name} ({row.ticker})</td>
+                                <td style={{ fontFamily: 'var(--font-mono)' }}>{row.pe}</td>
+                                <td style={{ fontFamily: 'var(--font-mono)' }}>{row.peg}</td>
+                                <td style={{ fontFamily: 'var(--font-mono)' }}>{row.roe}</td>
+                                <td style={{ fontFamily: 'var(--font-mono)' }}>{row.ebitda}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </div>
