@@ -6,11 +6,19 @@ import {
   RefreshCw, LogOut
 } from 'lucide-react';
 import ChatInterface from './ChatInterface';
+import { findLocalStock } from './ChatInterface';
 
 export default function LandingPage({ user, onStartSearch, onNavigateToView, onRequireLogin, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Chat transition states
+  const [showChat, setShowChat] = useState(false);
+  const [initialQuery, setInitialQuery] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
+  const [autocompleteResults, setAutocompleteResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
   // Stats state from API
   const [stats, setStats] = useState({ totalCompanies: null, documentsIndexed: null, aiReportsGenerated: null });
   const [loadingStats, setLoadingStats] = useState(true);
@@ -154,11 +162,103 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
     }
   }, [sensex.value]);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      onStartSearch(searchQuery);
+  // Debounced search logic for autocomplete
+  useEffect(() => {
+    if (searchValue.trim().length < 2) {
+      setAutocompleteResults([]);
+      setShowDropdown(false);
+      return;
     }
+
+    const delayDebounceFn = setTimeout(() => {
+      fetchAutocompleteResults(searchValue);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchValue]);
+
+  const fetchAutocompleteResults = async (query) => {
+    try {
+      const localMatch = findLocalStock(query);
+      let localResults = [];
+      if (localMatch) {
+        localResults.push({
+          symbol: localMatch.symbol + ".NS",
+          longname: localMatch.name,
+          shortname: localMatch.name,
+          exchange: "NSI"
+        });
+      }
+
+      const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=5&newsCount=0`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+      
+      let yahooStocks = [];
+      try {
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        if (data && data.quotes) {
+          yahooStocks = data.quotes.filter(item => 
+            item.symbol && 
+            (item.symbol.endsWith('.NS') || 
+             item.symbol.endsWith('.BO') || 
+             item.exchange === 'NSI' || 
+             item.exchange === 'BOM' || 
+             (item.exchDisp && (item.exchDisp.toLowerCase() === 'nse' || item.exchDisp.toLowerCase() === 'bse')))
+          );
+        }
+      } catch (e) {
+        console.error("Yahoo search failed during landing page autocomplete:", e);
+      }
+
+      const combined = [...localResults];
+      yahooStocks.forEach(item => {
+        const cleanYahooSymbol = item.symbol.replace('.NS', '').replace('.BO', '');
+        if (!combined.some(c => c.symbol.replace('.NS', '').replace('.BO', '') === cleanYahooSymbol)) {
+          combined.push(item);
+        }
+      });
+
+      setAutocompleteResults(combined.slice(0, 5));
+      setShowDropdown(combined.length > 0);
+    } catch (err) {
+      console.error("Landing page autocomplete error:", err);
+    }
+  };
+
+  const handleSearchSubmit = () => {
+    if (!searchValue.trim()) return;
+    setInitialQuery(searchValue);
+    setShowChat(true);
+    setShowDropdown(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  const handleSelectStock = (stock) => {
+    const symbol = stock.symbol.replace('.NS', '').replace('.BO', '');
+    const queryStr = `Search real-time stock details for ${stock.longname || stock.shortname} (${symbol})`;
+    setInitialQuery(queryStr);
+    setShowChat(true);
+    setShowDropdown(false);
+    setSearchValue('');
+  };
+
+  const triggerQuickSearch = (query) => {
+    let queryStr = query;
+    const localMap = {
+      "Reliance": "Search real-time stock details for Reliance Industries Limited (RELIANCE)",
+      "TCS": "Search real-time stock details for Tata Consultancy Services limited (TCS)",
+      "Tata Power": "Search real-time stock details for Tata Power Company Ltd. (TATAPOWER)",
+      "Titan": "Search real-time stock details for Titan Company Ltd (TITAN)"
+    };
+    queryStr = localMap[query] || query;
+    setInitialQuery(queryStr);
+    setShowChat(true);
   };
 
   return (
@@ -306,25 +406,81 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
             AI that converts complex earnings calls and financial reports into simple, actionable insights for Indian investors.
           </p>
 
-          {/* Embedded Live Chat Terminal Box */}
-          <div className="hero-chat-box-container animate-fade-in" style={{
-            width: '100%',
-            maxWidth: '1050px',
-            height: '620px',
-            marginTop: '32px',
-            borderRadius: '12px',
-            border: '1px solid var(--border-subtle)',
-            background: 'rgba(11, 18, 37, 0.45)',
-            backdropFilter: 'blur(16px)',
-            overflow: 'hidden',
-            boxShadow: 'var(--card-shadow), 0 0 30px rgba(0, 201, 167, 0.05)',
-            textAlign: 'left'
-          }}>
-            <ChatInterface 
-              user={user} 
-              onRequireLogin={onRequireLogin}
-            />
-          </div>
+          {!showChat ? (
+            <div className="search-hero-container animate-fade-in">
+              <div className="search-bar-wrapper">
+                <Search className="search-bar-icon" size={20} />
+                <input
+                  type="text"
+                  className="search-bar-input"
+                  placeholder="Read Concall in seconds"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <span className="enter-badge">
+                  <span className="enter-arrow">↵</span> Enter
+                </span>
+                <button className="search-bar-btn" onClick={handleSearchSubmit}>
+                  Translate <ArrowUpRight size={16} className="translate-arrow" />
+                </button>
+              </div>
+
+              {/* Autocomplete Dropdown */}
+              {showDropdown && autocompleteResults.length > 0 && (
+                <div className="search-autocomplete-dropdown glass-card">
+                  {autocompleteResults.map((stock) => (
+                    <div 
+                      key={stock.symbol} 
+                      className="autocomplete-item"
+                      onClick={() => handleSelectStock(stock)}
+                    >
+                      <span className="stock-symbol">{stock.symbol.replace('.NS', '').replace('.BO', '')}</span>
+                      <span className="stock-name">{stock.longname || stock.shortname}</span>
+                      <ArrowUpRight size={14} className="stock-arrow" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Suggestion pills under the search bar */}
+              <div className="search-suggestions">
+                <span className="suggestion-label">Try searching:</span>
+                <button onClick={() => triggerQuickSearch("Reliance")} className="suggestion-pill">Reliance</button>
+                <button onClick={() => triggerQuickSearch("TCS")} className="suggestion-pill">TCS</button>
+                <button onClick={() => triggerQuickSearch("Tata Power")} className="suggestion-pill">Tata Power</button>
+                <button onClick={() => triggerQuickSearch("Titan")} className="suggestion-pill">Titan</button>
+              </div>
+            </div>
+          ) : (
+            <div className="chat-terminal-wrapper animate-fade-in">
+              <div className="chat-terminal-header">
+                <button className="btn-back-search" onClick={() => setShowChat(false)}>
+                  ← Back to Search
+                </button>
+                <span className="terminal-title">UPERAI AI Research Terminal</span>
+              </div>
+              <div className="hero-chat-box-container" style={{
+                width: '100%',
+                maxWidth: '1050px',
+                height: '620px',
+                borderRadius: '12px',
+                border: '1px solid var(--border-subtle)',
+                background: 'rgba(11, 18, 37, 0.45)',
+                backdropFilter: 'blur(16px)',
+                overflow: 'hidden',
+                boxShadow: 'var(--card-shadow), 0 0 30px rgba(0, 201, 167, 0.05)',
+                textAlign: 'left'
+              }}>
+                <ChatInterface 
+                  user={user} 
+                  onRequireLogin={onRequireLogin}
+                  initialQuery={initialQuery}
+                  onClearInitialQuery={() => setInitialQuery(null)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

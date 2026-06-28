@@ -149,6 +149,16 @@ export default function ChatInterface({ user, onRequireLogin, initialQuery, onCl
   
   const chatEndRef = useRef(null);
 
+  // Handle initial query from parent component (e.g. Landing Page Hero search)
+  useEffect(() => {
+    if (initialQuery) {
+      handleSend(initialQuery);
+      if (onClearInitialQuery) {
+        onClearInitialQuery();
+      }
+    }
+  }, [initialQuery]);
+
   // Suggestions below input
   const suggestions = [
     "Reliance Industries results",

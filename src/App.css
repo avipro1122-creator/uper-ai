@@ -4067,4 +4067,272 @@ body {
   }
 }
 
+/* Minimalist Hero Search Bar (Vest AI / Multibagger AI Style) */
+.search-hero-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 780px;
+  margin: 40px auto 0 auto;
+  position: relative;
+}
+
+.search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: rgba(11, 18, 37, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 8px 8px 8px 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.search-bar-wrapper:focus-within {
+  border-color: rgba(0, 245, 196, 0.4);
+  box-shadow: 0 0 25px rgba(0, 245, 196, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.search-bar-icon {
+  color: var(--text-muted);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.search-bar-input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-family: var(--font-sans);
+  padding: 8px 0;
+  width: 100%;
+}
+
+.search-bar-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: 400;
+}
+
+.enter-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+.enter-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.search-bar-btn {
+  background: #00F5C4;
+  color: #050B14;
+  border: none;
+  outline: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 245, 196, 0.2);
+}
+
+.search-bar-btn:hover {
+  transform: translateY(-1px);
+  background: #00e0b3;
+  box-shadow: 0 6px 18px rgba(0, 245, 196, 0.35);
+}
+
+.search-bar-btn:active {
+  transform: translateY(0);
+}
+
+.translate-arrow {
+  transition: transform 0.2s ease;
+}
+
+.search-bar-btn:hover .translate-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* Autocomplete Dropdown */
+.search-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(11, 18, 37, 0.9);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.autocomplete-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.stock-symbol {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  background: rgba(0, 201, 167, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 12px;
+}
+
+.stock-name {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stock-arrow {
+  color: var(--text-muted);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.autocomplete-item:hover .stock-arrow {
+  opacity: 1;
+  color: var(--accent-color);
+  transform: translate(1px, -1px);
+}
+
+/* Suggestion Pills */
+.search-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.suggestion-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.suggestion-pill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-pill:hover {
+  background: rgba(0, 245, 196, 0.06);
+  border-color: rgba(0, 245, 196, 0.25);
+  color: #00F5C4;
+}
+
+/* Active Chat Terminal styling */
+.chat-terminal-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1050px;
+  margin: 32px auto 0 auto;
+}
+
+.chat-terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+  padding: 0 4px;
+}
+
+.btn-back-search {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back-search:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.terminal-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@media (max-width: 768px) {
+  .search-bar-wrapper {
+    padding: 6px 6px 6px 14px;
+  }
+  .search-bar-input {
+    font-size: 0.95rem;
+  }
+  .enter-badge {
+    display: none;
+  }
+  .search-bar-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+  }
+}
+
 
