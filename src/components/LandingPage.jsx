@@ -25,6 +25,11 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
   // Refs for smooth scroll
   const statsRef = useRef(null);
   const whyRef = useRef(null);
+  const pricingRef = useRef(null);
+  const heroRef = useRef(null);
+
+  // Billing period state for pricing
+  const [billingPeriod, setBillingPeriod] = useState('yearly');
 
   const scrollToSection = (elementRef) => {
     setMobileMenuOpen(false);
@@ -172,8 +177,9 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
           </div>
 
           <nav className="desktop-nav">
-            <button onClick={() => scrollToSection(statsRef)} className="nav-link-btn">Market Ticker</button>
-            <button onClick={() => scrollToSection(whyRef)} className="nav-link-btn">Why UperAI</button>
+            <button onClick={() => scrollToSection(heroRef)} className="nav-link-btn">Ask Pro</button>
+            <button onClick={() => scrollToSection(statsRef)} className="nav-link-btn">Discovery</button>
+            <button onClick={() => scrollToSection(pricingRef)} className="nav-link-btn">Pricing</button>
           </nav>
 
           <div className="header-actions">
@@ -226,8 +232,9 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="mobile-nav-drawer">
-            <button onClick={() => scrollToSection(statsRef)} className="mobile-drawer-link">Market Ticker</button>
-            <button onClick={() => scrollToSection(whyRef)} className="mobile-drawer-link">Why UperAI</button>
+            <button onClick={() => scrollToSection(heroRef)} className="mobile-drawer-link">Ask Pro</button>
+            <button onClick={() => scrollToSection(statsRef)} className="mobile-drawer-link">Discovery</button>
+            <button onClick={() => scrollToSection(pricingRef)} className="mobile-drawer-link">Pricing</button>
             <div className="mobile-drawer-divider" />
             {user ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 16px 16px 16px' }}>
@@ -279,7 +286,7 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
       </header>
 
       {/* Hero Section */}
-      <section className="hero-landing-section">
+      <section ref={heroRef} className="hero-landing-section">
         <div className="hero-landing-content">
           <div className="hero-glow-radial" />
           
@@ -504,6 +511,95 @@ export default function LandingPage({ user, onStartSearch, onNavigateToView, onR
         </div>
       </section>
 
+
+      {/* Pricing Section */}
+      <section ref={pricingRef} className="pricing-landing-section">
+        <div className="section-header">
+          <span className="section-subtitle">Flexible Plans</span>
+          <h2 className="section-title animate-fade-in">Get the AI Advantage,<br/><span className="gradient-teal-text">Become a Pro Investor</span></h2>
+          
+          <div className="pricing-billing-toggle animate-fade-in">
+            <button 
+              className={`toggle-tab ${billingPeriod === 'monthly' ? 'active' : ''}`}
+              onClick={() => setBillingPeriod('monthly')}
+            >
+              Monthly
+            </button>
+            <button 
+              className={`toggle-tab ${billingPeriod === 'yearly' ? 'active' : ''}`}
+              onClick={() => setBillingPeriod('yearly')}
+            >
+              Yearly <span className="discount-badge">Save 40%</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="pricing-grid animate-fade-in">
+          {/* Card 1: Premium */}
+          <div className="pricing-card glass-card">
+            <div className="card-header">
+              <span className="plan-name">Premium</span>
+              <div className="plan-price">
+                <span className="currency">₹</span>
+                <span className="amount">{billingPeriod === 'yearly' ? '599' : '999'}</span>
+                <span className="period">/mo</span>
+              </div>
+              {billingPeriod === 'yearly' && <span className="billing-annually-note">Billed annually</span>}
+            </div>
+            <p className="plan-desc">Ideal for active investors who prefer data-driven research before picking stocks.</p>
+            <ul className="plan-features">
+              <li><Check size={14} className="feature-check" /> 20 AI Research Queries / day</li>
+              <li><Check size={14} className="feature-check" /> Standard SLM Analysis</li>
+              <li><Check size={14} className="feature-check" /> Corporate Disclosures & News</li>
+              <li><Check size={14} className="feature-check" /> Community Support</li>
+            </ul>
+            <button className="btn-plan-select" onClick={onRequireLogin}>Get Started</button>
+          </div>
+
+          {/* Card 2: Professional (Best Seller) */}
+          <div className="pricing-card glass-card best-seller">
+            <div className="best-seller-badge">Best Seller</div>
+            <div className="card-header">
+              <span className="plan-name">Professional</span>
+              <div className="plan-price">
+                <span className="currency">₹</span>
+                <span className="amount">{billingPeriod === 'yearly' ? '1,499' : '2,499'}</span>
+                <span className="period">/mo</span>
+              </div>
+              {billingPeriod === 'yearly' && <span className="billing-annually-note">Billed annually</span>}
+            </div>
+            <p className="plan-desc">Ideal for pro investors who require deep historical data and upgraded AI capabilities.</p>
+            <ul className="plan-features">
+              <li><Check size={14} className="feature-check" /> Unlimited AI Research Queries</li>
+              <li><Check size={14} className="feature-check" /> Deep Historical Concall Scans</li>
+              <li><Check size={14} className="feature-check" /> Advanced Valuation Models</li>
+              <li><Check size={14} className="feature-check" /> Export PDF Reports</li>
+              <li><Check size={14} className="feature-check" /> Priority AI Inference Speed</li>
+            </ul>
+            <button className="btn-plan-select btn-featured" onClick={onRequireLogin}>Become a Pro</button>
+          </div>
+
+          {/* Card 3: Enterprise */}
+          <div className="pricing-card glass-card">
+            <div className="card-header">
+              <span className="plan-name">Enterprise</span>
+              <div className="plan-price">
+                <span className="amount">Custom</span>
+              </div>
+              <span className="billing-annually-note">Tailored solutions</span>
+            </div>
+            <p className="plan-desc">Ideal for research teams and institutions requiring custom data, API integrations, and higher limits.</p>
+            <ul className="plan-features">
+              <li><Check size={14} className="feature-check" /> Custom Data Integrations</li>
+              <li><Check size={14} className="feature-check" /> Dedicated API Endpoints</li>
+              <li><Check size={14} className="feature-check" /> Higher Concurrency & Limits</li>
+              <li><Check size={14} className="feature-check" /> Custom SLM Fine-tuning</li>
+              <li><Check size={14} className="feature-check" /> 24/7 Account Manager</li>
+            </ul>
+            <button className="btn-plan-select" onClick={() => alert("Contact sales at sales@uperai.in")}>Contact Sales</button>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="landing-footer">

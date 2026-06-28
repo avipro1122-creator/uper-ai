@@ -16,10 +16,11 @@ out/
 scratch_*.js
 *.js.map
 ai-gateway-demo/
+# Eve Agent runtime cache
+.eve/
+__pycache__/
+.venv/
 .agents/
-
-
-
 # Environment Variables & Secrets
 .env
 .env.local

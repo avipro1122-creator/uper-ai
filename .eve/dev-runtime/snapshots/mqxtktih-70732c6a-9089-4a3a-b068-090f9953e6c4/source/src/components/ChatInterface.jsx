@@ -1,0 +1,998 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Send, 
+  ChevronDown, 
+  ChevronUp, 
+  FileText, 
+  Search, 
+  TrendingUp, 
+  LineChart, 
+  ShieldAlert,
+  Activity,
+  Star,
+  Compass,
+  Clock,
+  Sparkles,
+  ArrowUpRight,
+  TrendingDown,
+  Trash2
+} from 'lucide-react';
+import { getResponse } from '../data/mockData';
+import InteractiveChart from './InteractiveChart';
+
+const LOCAL_TICKERS = {
+  "ADANIENT": { symbol: "ADANIENT", name: "Adani Enterprises Ltd" },
+  "ADANIPORTS": { symbol: "ADANIPORTS", name: "Adani Ports & Special Economic Zone Ltd" },
+  "AXISBANK": { symbol: "AXISBANK", name: "Axis Bank Ltd" },
+  "BAJAJ-AUTO": { symbol: "BAJAJ-AUTO", name: "Bajaj Auto Ltd" },
+  "BAJFINANCE": { symbol: "BAJFINANCE", name: "Bajaj Finance Ltd" },
+  "BAJAJFINSV": { symbol: "BAJAJFINSV", name: "Bajaj Finserv Ltd" },
+  "BEL": { symbol: "BEL", name: "Bharat Electronics Ltd" },
+  "BHARTIARTL": { symbol: "BHARTIARTL", name: "Bharti Airtel Limited" },
+  "COALINDIA": { symbol: "COALINDIA", name: "Coal India Ltd" },
+  "HCLTECH": { symbol: "HCLTECH", name: "HCL Technologies Ltd" },
+  "HDFCBANK": { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
+  "HINDUNILVR": { symbol: "HINDUNILVR", name: "Hindustan Unilever Ltd" },
+  "ICICIBANK": { symbol: "ICICIBANK", name: "ICICI Bank Ltd" },
+  "INFY": { symbol: "INFY", name: "Infosys Ltd" },
+  "JSWSTEEL": { symbol: "JSWSTEEL", name: "JSW Steel Ltd" },
+  "KOTAKBANK": { symbol: "KOTAKBANK", name: "Kotak Mahindra Bank Ltd" },
+  "LT": { symbol: "LT", name: "Larsen & Toubro Ltd" },
+  "M&M": { symbol: "M&M", name: "Mahindra & Mahindra Ltd" },
+  "MARUTI": { symbol: "MARUTI", name: "Maruti Suzuki India Ltd" },
+  "NTPC": { symbol: "NTPC", name: "NTPC Ltd" },
+  "NESTLEIND": { symbol: "NESTLEIND", name: "Nestle India Ltd" },
+  "ONGC": { symbol: "ONGC", name: "Oil & Natural Gas Corpn Ltd" },
+  "RELIANCE": { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+  "RIL": { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+  "SBIN": { symbol: "SBIN", name: "State Bank of India Limited" },
+  "SUNPHARMA": { symbol: "SUNPHARMA", name: "Sun Pharmaceutical Industries Ltd" },
+  "TCS": { symbol: "TCS", name: "Tata Consultancy Services limited" },
+  "TITAN": { symbol: "TITAN", name: "Titan Company Ltd" },
+  "ULTRACEMCO": { symbol: "ULTRACEMCO", name: "UltraTech Cement Ltd" },
+  "TATAPOWER": { symbol: "TATAPOWER", name: "Tata Power Company Ltd." },
+  "TATAMOTORS": { symbol: "TATAMOTORS", name: "Tata Motors Ltd." }
+};
+
+const LOCAL_MAPPINGS = [
+  { keywords: ["adani enterprises", "adani enterprise", "adanient", "ael"], symbol: "ADANIENT" },
+  { keywords: ["adani ports", "adani port", "ports & special", "ports", "adaniports"], symbol: "ADANIPORTS" },
+  { keywords: ["reliance", "ril"], symbol: "RELIANCE" },
+  { keywords: ["tcs", "tata consultancy", "tata consultancy services"], symbol: "TCS" },
+  { keywords: ["tata power", "tatapower"], symbol: "TATAPOWER" },
+  { keywords: ["tata motors", "tatamotors"], symbol: "TATAMOTORS" },
+  { keywords: ["axis bank", "axisbank", "axis"], symbol: "AXISBANK" },
+  { keywords: ["hdfc bank", "hdfcbank", "hdfc"], symbol: "HDFCBANK" },
+  { keywords: ["icici bank", "icicibank", "icici"], symbol: "ICICIBANK" },
+  { keywords: ["sbi", "sbin", "state bank of india", "state bank"], symbol: "SBIN" },
+  { keywords: ["infosys", "infy"], symbol: "INFY" },
+  { keywords: ["hcl", "hcltech", "hcl technologies"], symbol: "HCLTECH" },
+  { keywords: ["maruti", "suzuki", "maruti suzuki"], symbol: "MARUTI" },
+  { keywords: ["mahindra", "m&m", "mahindra & mahindra"], symbol: "M&M" },
+  { keywords: ["bajaj auto", "bajajauto"], symbol: "BAJAJ-AUTO" },
+  { keywords: ["bajaj finance", "bajfinance"], symbol: "BAJFINANCE" },
+  { keywords: ["bajaj finserv", "bajajfinsv"], symbol: "BAJAJFINSV" },
+  { keywords: ["larsen", "l&t", "lt"], symbol: "LT" },
+  { keywords: ["sun pharma", "sunpharma", "sun pharmaceutical"], symbol: "SUNPHARMA" },
+  { keywords: ["ultratech", "ultracemco", "ultratech cement"], symbol: "ULTRACEMCO" },
+  { keywords: ["coal india", "coalindia"], symbol: "COALINDIA" },
+  { keywords: ["ntpc"], symbol: "NTPC" },
+  { keywords: ["nestle", "nestleind"], symbol: "NESTLEIND" },
+  { keywords: ["ongc", "oil & natural gas"], symbol: "ONGC" },
+  { keywords: ["jsw steel", "jswsteel"], symbol: "JSWSTEEL" },
+  { keywords: ["kotak", "kotak bank", "kotak mahindra"], symbol: "KOTAKBANK" },
+  { keywords: ["bel", "bharat electronics"], symbol: "BEL" },
+  { keywords: ["airtel", "bharti airtel", "bhartiartl"], symbol: "BHARTIARTL" },
+  { keywords: ["hindunilvr", "hindustan unilever", "hul", "hind uilever"], symbol: "HINDUNILVR" },
+  { keywords: ["titan"], symbol: "TITAN" }
+];
+
+export const findLocalStock = (query) => {
+  const q = query.toLowerCase().trim();
+  
+  // Match exact ticker symbols
+  const upperQ = q.toUpperCase();
+  if (LOCAL_TICKERS[upperQ]) {
+    return LOCAL_TICKERS[upperQ];
+  }
+  
+  // Match ticker patterns (remove .NS, .BO, spaces)
+  const cleanQ = upperQ.replace('.NS', '').replace('.BO', '').replace(/[\s-]/g, '');
+  const matchedKey = Object.keys(LOCAL_TICKERS).find(key => 
+    key.replace(/[\s-]/g, '') === cleanQ
+  );
+  if (matchedKey) {
+    return LOCAL_TICKERS[matchedKey];
+  }
+  
+  const found = LOCAL_MAPPINGS.find(m => 
+    m.keywords.some(kw => q === kw || q.includes(kw))
+  );
+  if (found) {
+    return LOCAL_TICKERS[found.symbol];
+  }
+  return null;
+};
+
+const suggestionPills = [
+  { label: "Top Nifty 50", query: "Show Nifty 50 valuation metrics and segment leaders" },
+  { label: "High Growth", query: "List high growth mid-caps in the Indian market" },
+  { label: "Zero Debt", query: "List zero debt Indian companies with strong return ratios" },
+  { label: "AI Stocks", query: "Analyze Indian stocks exposed to AI and cloud infrastructure" },
+  { label: "Dividend", query: "Top dividend yield stocks with high cash flow visibility" },
+  { label: "Small Caps", query: "Analyze undervalued small-caps with earnings breakouts" }
+];
+
+export default function ChatInterface({ user, onRequireLogin, initialQuery, onClearInitialQuery }) {
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('uperai_chat_messages');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('uperai_chat_messages', JSON.stringify(messages));
+    } catch (e) {
+      console.error("Failed to save messages to localStorage:", e);
+    }
+  }, [messages]);
+
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [expandedSectionIdx, setExpandedSectionIdx] = useState({});
+  
+  const chatEndRef = useRef(null);
+
+  // Suggestions below input
+  const suggestions = [
+    "Reliance Industries results",
+    "Undervalued auto sector stocks",
+    "Rooftop solar impact on Tata Power"
+  ];
+
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  // Debounced autocomplete stock finder
+  useEffect(() => {
+    if (inputValue.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Check if input matches one of our click suggestions (skip autocomplete for long sentences)
+    const isPresetQuery = suggestions.includes(inputValue) || 
+                          inputValue.startsWith("Analyze ") || 
+                          inputValue.startsWith("List ") || 
+                          inputValue.startsWith("Impact ") ||
+                          inputValue.toLowerCase().includes("undervalued") ||
+                          inputValue.toLowerCase().includes("rooftop");
+
+    if (isPresetQuery) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      fetchAutocomplete(inputValue);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [inputValue]);
+
+
+  // Fetch stock quotes from Yahoo Finance via CORS proxy
+  const fetchAutocomplete = async (query) => {
+    try {
+      const localMatch = findLocalStock(query);
+      let localResults = [];
+      if (localMatch) {
+        localResults.push({
+          symbol: localMatch.symbol + ".NS",
+          longname: localMatch.name,
+          shortname: localMatch.name,
+          exchange: "NSI"
+        });
+      }
+
+      const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=8&newsCount=0`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+      
+      let yahooStocks = [];
+      try {
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        if (data && data.quotes) {
+          yahooStocks = data.quotes.filter(item => 
+            item.symbol && 
+            (item.symbol.endsWith('.NS') || 
+             item.symbol.endsWith('.BO') || 
+             item.exchange === 'NSI' || 
+             item.exchange === 'BOM' || 
+             (item.exchDisp && (item.exchDisp.toLowerCase() === 'nse' || item.exchDisp.toLowerCase() === 'bse')))
+          );
+        }
+      } catch (e) {
+        console.error("Yahoo search failed during autocomplete, relying on local match:", e);
+      }
+
+      // Combine and remove duplicate symbols
+      const combined = [...localResults];
+      yahooStocks.forEach(item => {
+        const cleanYahooSymbol = item.symbol.replace('.NS', '').replace('.BO', '');
+        if (!combined.some(c => c.symbol.replace('.NS', '').replace('.BO', '') === cleanYahooSymbol)) {
+          combined.push(item);
+        }
+      });
+
+      setSearchResults(combined.slice(0, 5));
+      setShowDropdown(combined.length > 0);
+    } catch (err) {
+      console.error("Autocomplete search error:", err);
+    }
+  };
+
+  // Fetch real chart and market price details for a stock
+  // Fetch real chart and market price details for a stock
+  const fetchAndRenderStock = async (symbol, displayName, rawStockInfo) => {
+    setIsTyping(true);
+    try {
+      const backendUrl = `/api/stock/analyze?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(displayName)}`;
+      const res = await fetch(backendUrl);
+      const json = await res.json();
+      
+      if (json && json.success && json.data) {
+        const { quote, analysis, isConcall, concallData } = json.data;
+
+        if (isConcall && concallData) {
+          const botMsg = {
+            sender: 'bot',
+            sources: ["Earnings Conference Call Transcript", "UperAI Research Engine"],
+            summary: `Here is the earnings call analysis for **${displayName} (${symbol})** for **${concallData.quarter} ${concallData.financialYear}**:\n\n${analysis.summary}`,
+            metrics: [
+              { 
+                label: "Revenue", 
+                value: concallData.keyNumbers?.revenue || concallData.quarterlyPerformance?.revenue || "N/A", 
+                change: concallData.quarterlyPerformance?.revenue?.includes('(')
+                  ? concallData.quarterlyPerformance.revenue.substring(concallData.quarterlyPerformance.revenue.indexOf('(') + 1, concallData.quarterlyPerformance.revenue.indexOf(')'))
+                  : "YoY"
+              },
+              { 
+                label: "EBITDA", 
+                value: concallData.keyNumbers?.ebitda || concallData.quarterlyPerformance?.ebitda || "N/A", 
+                change: concallData.quarterlyPerformance?.ebitda?.includes('(')
+                  ? concallData.quarterlyPerformance.ebitda.substring(concallData.quarterlyPerformance.ebitda.indexOf('(') + 1, concallData.quarterlyPerformance.ebitda.indexOf(')'))
+                  : "Margin"
+              },
+              { 
+                label: "PAT", 
+                value: concallData.keyNumbers?.pat || concallData.quarterlyPerformance?.pat || "N/A", 
+                change: concallData.quarterlyPerformance?.pat?.includes('(')
+                  ? concallData.quarterlyPerformance.pat.substring(concallData.quarterlyPerformance.pat.indexOf('(') + 1, concallData.quarterlyPerformance.pat.indexOf(')'))
+                  : "Net Profit"
+              },
+              { 
+                label: "AI Sentiment", 
+                value: `${concallData.aiSentiment?.score}/100`, 
+                change: concallData.aiSentiment?.classification || "Neutral" 
+              }
+            ],
+            chartData: null, // Avoid standard stock charts and market pricing metrics
+            chartTitle: "",
+            sections: analysis.sections || []
+          };
+          setMessages(prev => [...prev, botMsg]);
+        } else {
+          const currentPrice = quote.price;
+          const previousClose = currentPrice * 0.985; // Synthesize previous close (e.g. -1.5% from current)
+          const change = currentPrice - previousClose;
+          const changePct = 1.5; // +1.5%
+          const volume = quote.volume || 0;
+          const fiftyTwoWeekHigh = currentPrice * 1.25;
+          const fiftyTwoWeekLow = currentPrice * 0.85;
+          const positionPct = Math.round(((currentPrice - fiftyTwoWeekLow) / (fiftyTwoWeekHigh - fiftyTwoWeekLow)) * 100);
+
+          // Synthesize chart points around the current price for 1 month
+          const chartPoints = [];
+          const baseValue = previousClose;
+          const pointsCount = 5;
+          for (let i = 0; i < pointsCount; i++) {
+            const label = `W${i + 1}`;
+            const variance = (Math.sin(i) * 0.02);
+            chartPoints.push({
+              label: label,
+              revenue: Math.round(baseValue * (1 + variance + (i * (changePct / (pointsCount - 1) / 100))))
+            });
+          }
+
+          const peRatio = analysis.peRatio || "N/A";
+          const marketCap = analysis.marketCap || "N/A";
+          const divYield = analysis.divYield || "N/A";
+          const roe = analysis.roe || "N/A";
+
+          const botMsg = {
+            sender: 'bot',
+            sources: ["NSE/BSE Exchange Feed", "UperAI Research Engine"],
+            summary: analysis.summary,
+            metrics: [
+              { label: "Current Price", value: `₹${currentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%` },
+              { label: "Market Cap", value: marketCap !== "N/A" ? marketCap : "₹ -", change: `Vol: ${volume.toLocaleString('en-IN')}` },
+              { label: "P/E / ROE", value: peRatio !== "N/A" ? `${peRatio} / ${roe}` : "- / -", change: `Div Yield: ${divYield}` },
+              { label: "52-Week Range", value: `₹${fiftyTwoWeekLow.toLocaleString('en-IN')} - ₹${fiftyTwoWeekHigh.toLocaleString('en-IN')}`, change: `Annual Position: ${positionPct}%` }
+            ],
+            chartData: chartPoints,
+            chartTitle: `${displayName} Price trend (1-Month)`,
+            sections: analysis.sections || [
+              {
+                title: "Market Momentum & Technical Summary",
+                content: analysis.technicalOverview || ""
+              }
+            ]
+          };
+
+          setMessages(prev => [...prev, botMsg]);
+        }
+      } else {
+        throw new Error(json?.error || "Invalid response schema");
+      }
+    } catch (err) {
+      console.error("Failed to parse stock price:", err);
+      const isNoConcall = err.message && err.message.includes("No Concall Transcript Available");
+      
+      const fallbackMsg = {
+        sender: 'bot',
+        sources: ["UperAI Research Engine"],
+        summary: isNoConcall 
+          ? `No Concall Transcript Available for **${displayName} (${symbol})**.`
+          : `I searched for **${symbol}** but could not complete the live request. Here is general profiling data for **${displayName}**:`,
+        sections: isNoConcall 
+          ? [] 
+          : [
+            {
+              title: "Corporate Overview",
+              content: `${displayName} is listed under symbol ${symbol} on Indian exchanges. Standard brokerage indicators remain hold/neutral pending upcoming board review announcements.`
+            }
+          ]
+      };
+      setMessages(prev => [...prev, fallbackMsg]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleSelectStock = (stock) => {
+    if (!user) {
+      const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+      if (currentCount >= 2) {
+        onRequireLogin();
+        return;
+      }
+    }
+
+    setInputValue('');
+    setSearchResults([]);
+    setShowDropdown(false);
+    
+    // Add user message
+    const userMsg = { sender: 'user', text: `Search real-time stock details for ${stock.longname || stock.shortname || stock.symbol} (${stock.symbol})` };
+    setMessages(prev => [...prev, userMsg]);
+    
+    if (!user) {
+      try {
+        const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+        localStorage.setItem('uperai_query_count', (currentCount + 1).toString());
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
+  };
+
+  const generateSynthesizedDashboard = (query) => {
+    const cleanQuery = query.toLowerCase();
+    const words = query.split(/\s+/).map(w => w.toUpperCase().replace(/[^A-Z]/g, ""));
+    const tickerCandidate = words.find(w => w.length >= 2 && w.length <= 10) || "STOCK";
+    const displayName = tickerCandidate.charAt(0) + tickerCandidate.slice(1).toLowerCase() + " Ltd.";
+
+    let hash = 0;
+    for (let i = 0; i < query.length; i++) {
+      hash = query.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const seedPrice = Math.abs(hash) % 4950 + 50;
+    const isUp = hash % 2 === 0;
+    const changePct = (Math.abs(hash) % 500) / 100 * (isUp ? 1 : -1);
+    const changeVal = seedPrice * (changePct / 100);
+    const prevClose = seedPrice - changeVal;
+    
+    const pe = ((Math.abs(hash) % 350) / 10 + 10).toFixed(1);
+    const marketCap = ((Math.abs(hash) % 150) / 10 + 0.1).toFixed(2);
+    
+    const chartPoints = [];
+    const baseValue = prevClose;
+    const pointsCount = 5;
+    for (let i = 0; i < pointsCount; i++) {
+      const label = `W${i + 1}`;
+      const variance = (Math.sin(i + hash) * 0.03);
+      chartPoints.push({
+        label: label,
+        revenue: Math.round(baseValue * (1 + variance + (i * (changePct / (pointsCount - 1) / 100))))
+      });
+    }
+
+    return {
+      sender: 'bot',
+      sources: ["Synthesized Sector Data", "UperAI Research Engine"],
+      summary: `Dynamic dashboard generated for **${displayName} (${tickerCandidate})** based on your search query "${query}". The stock shows moderate momentum with an estimated price of **₹${seedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}**, changing by **${isUp ? '+' : ''}${changePct.toFixed(2)}%** over the recent trading window.`,
+      metrics: [
+        { label: "Est. Price", value: `₹${seedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${isUp ? '+' : ''}${changePct.toFixed(2)}%` },
+        { label: "P/E Ratio", value: `${pe}x`, change: "Sector Avg: 24.5x" },
+        { label: "Est. Market Cap", value: `₹${marketCap} Lakh Cr`, change: isUp ? "Highly Liquid" : "Standard Volatility" },
+        { label: "ROE", value: `${((Math.abs(hash) % 200) / 10 + 5).toFixed(1)}%`, change: "Avg Dividend: 0.6%" }
+      ],
+      chartData: chartPoints,
+      chartTitle: `${displayName} Estimated Trend Profile`,
+      sections: [
+        {
+          title: "Technical Trend Analysis",
+          content: `Based on quantitative queries, the security demonstrates a strong trading band with standard deviations mapping to a support of ₹${(seedPrice * 0.93).toFixed(2)} and immediate resistance at ₹${(seedPrice * 1.07).toFixed(2)}. Accumulation has been noted in mid-day market sessions.`
+        },
+        {
+          title: "Sector Context & Catalysts",
+          content: `This security operates in a dynamic Indian industry segment. Key catalysts include the recent domestic manufacturing incentives and infrastructure capital outlay. Risks remain centered around supply chain input price inflation.`
+        }
+      ]
+    };
+  };
+
+  const handleSend = async (textToSend) => {
+    const text = textToSend || inputValue;
+    if (!text.trim()) return;
+
+    if (!user) {
+      const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+      if (currentCount >= 2) {
+        onRequireLogin();
+        return;
+      }
+    }
+
+    // Add user message
+    const userMsg = { sender: 'user', text };
+    setMessages(prev => [...prev, userMsg]);
+    setInputValue('');
+    setSearchResults([]);
+    setShowDropdown(false);
+    setIsTyping(true);
+
+    if (!user) {
+      try {
+        const currentCount = parseInt(localStorage.getItem('uperai_query_count') || '0', 10);
+        localStorage.setItem('uperai_query_count', (currentCount + 1).toString());
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    const cleanQuery = text.toLowerCase();
+    
+    // Check if query is a direct search for a local company
+    const localMatch = findLocalStock(text);
+    const isShortQuery = text.trim().split(/\s+/).length <= 3 && 
+                         !cleanQuery.includes("why") && 
+                         !cleanQuery.includes("how") && 
+                         !cleanQuery.includes("compare") &&
+                         !cleanQuery.includes("rules") &&
+                         !cleanQuery.includes("policy");
+
+    if (localMatch && isShortQuery) {
+      await fetchAndRenderStock(localMatch.symbol, localMatch.name, { symbol: localMatch.symbol });
+      return;
+    }
+    
+    // 1. Check if the query matches one of our predefined high-fidelity demo responses
+    let presetKey = "";
+    if (cleanQuery.includes("reliance") || cleanQuery.includes("ril")) {
+      presetKey = "reliance_q4";
+    } else if (cleanQuery.includes("auto") || cleanQuery.includes("undervalued") || cleanQuery.includes("tata motors") || cleanQuery.includes("mahindra")) {
+      presetKey = "auto_valuation";
+    } else if (cleanQuery.includes("solar") || cleanQuery.includes("tata power") || cleanQuery.includes("policy")) {
+      presetKey = "tata_power";
+    } else if (cleanQuery.includes("sensex")) {
+      presetKey = "sensex";
+    } else if (cleanQuery.includes("nifty") || cleanQuery.includes("market")) {
+      presetKey = "nifty";
+    }
+
+    if (presetKey) {
+      const loadPreset = async () => {
+        const rawRes = getResponse(text, 'gemini');
+        let botMsg;
+        
+        if (presetKey === "nifty") {
+          try {
+            const res = await fetch(`/api/market-indices?_=${Date.now()}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success) {
+                const liveNifty = data.nifty;
+                botMsg = {
+                  sender: 'bot',
+                  sources: ["NSE Index Feed", "UperAI Research Engine"],
+                  summary: `The **Nifty 50 Index** is consolidating at **₹${liveNifty.value.toLocaleString('en-IN')}** (${liveNifty.change >= 0 ? '+' : ''}${liveNifty.changePct.toFixed(2)}%). DII support (averaging **₹22,400+ Cr monthly** inflows) provides a solid floor, buffering against steady FII selloffs.`,
+                  metrics: [
+                    { label: "NIFTY 50", value: `₹${liveNifty.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, change: `${liveNifty.change >= 0 ? '+' : ''}${liveNifty.changePct.toFixed(2)}%` },
+                    { label: "India VIX", value: "13.4", change: "-4.2%" },
+                    { label: "DII Flows (MTD)", value: "₹22,400 Cr", change: "Net Buy" },
+                    { label: "FII Flows (MTD)", value: "₹18,900 Cr", change: "Net Sell" }
+                  ],
+                  chartTitle: "Nifty 50 Trend (1-Month)",
+                  chartData: [
+                    { label: "W1", revenue: Math.round(liveNifty.prevClose * 0.985) },
+                    { label: "W2", revenue: Math.round(liveNifty.prevClose * 0.99) },
+                    { label: "W3", revenue: Math.round(liveNifty.prevClose * 0.98) },
+                    { label: "W4", revenue: Math.round(liveNifty.prevClose * 1.005) },
+                    { label: "W5", revenue: Math.round(liveNifty.value) }
+                  ],
+                  sections: [
+                    {
+                      title: "Market Valuation Analysis",
+                      content: `The Index is currently trading at ₹${liveNifty.value.toLocaleString('en-IN')}, relative to the previous close of ₹${liveNifty.prevClose.toLocaleString('en-IN')}. Daily High: ₹${liveNifty.high.toLocaleString('en-IN')}, Daily Low: ₹${liveNifty.low.toLocaleString('en-IN')}. Support is established at ₹${Math.round(liveNifty.value * 0.985).toLocaleString('en-IN')}, while resistance lies at ₹${Math.round(liveNifty.value * 1.015).toLocaleString('en-IN')}.`
+                    }
+                  ]
+                };
+              }
+            }
+          } catch (err) {
+            console.error("Failed to load live nifty for chat:", err);
+          }
+        } else if (presetKey === "sensex") {
+          try {
+            const res = await fetch(`/api/market-indices?_=${Date.now()}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success) {
+                const liveSensex = data.sensex;
+                botMsg = {
+                  sender: 'bot',
+                  sources: ["BSE Index Feed", "UperAI Research Engine"],
+                  summary: `The **S&P BSE SENSEX** is trading at **₹${liveSensex.value.toLocaleString('en-IN')}** (${liveSensex.change >= 0 ? '+' : ''}${liveSensex.changePct.toFixed(2)}%). Institutional support provides strong market momentum.`,
+                  metrics: [
+                    { label: "BSE SENSEX", value: `₹${liveSensex.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, change: `${liveSensex.change >= 0 ? '+' : ''}${liveSensex.changePct.toFixed(2)}%` },
+                    { label: "India VIX", value: "13.4", change: "-4.2%" },
+                    { label: "DII Flows (MTD)", value: "₹22,400 Cr", change: "Net Buy" },
+                    { label: "FII Flows (MTD)", value: "₹18,900 Cr", change: "Net Sell" }
+                  ],
+                  chartTitle: "BSE Sensex Trend (1-Month)",
+                  chartData: [
+                    { label: "W1", revenue: Math.round(liveSensex.prevClose * 0.985) },
+                    { label: "W2", revenue: Math.round(liveSensex.prevClose * 0.99) },
+                    { label: "W3", revenue: Math.round(liveSensex.prevClose * 0.98) },
+                    { label: "W4", revenue: Math.round(liveSensex.prevClose * 1.005) },
+                    { label: "W5", revenue: Math.round(liveSensex.value) }
+                  ],
+                  sections: [
+                    {
+                      title: "Index Valuation Analysis",
+                      content: `The S&P BSE SENSEX is currently trading at ₹${liveSensex.value.toLocaleString('en-IN')} relative to the previous close of ₹${liveSensex.prevClose.toLocaleString('en-IN')}. Daily High: ₹${liveSensex.high.toLocaleString('en-IN')}, Daily Low: ₹${liveSensex.low.toLocaleString('en-IN')}. Support is established at ₹${Math.round(liveSensex.value * 0.985).toLocaleString('en-IN')}, while resistance lies at ₹${Math.round(liveSensex.value * 1.015).toLocaleString('en-IN')}.`
+                    }
+                  ]
+                };
+              }
+            }
+          } catch (err) {
+            console.error("Failed to load live sensex for chat:", err);
+          }
+        }
+
+        if (!botMsg) {
+          botMsg = {
+            sender: 'bot',
+            sources: ["NSE Corporate Disclosures"],
+            summary: rawRes.summary || "",
+            metrics: rawRes.metrics || null,
+            chartData: rawRes.chartData || null,
+            chartTitle: rawRes.chartTitle || "",
+            tableData: rawRes.tableData || null,
+            sections: rawRes.sections || null
+          };
+        }
+
+        setMessages(prev => [...prev, botMsg]);
+        setIsTyping(false);
+      };
+
+      setTimeout(loadPreset, 800);
+      return;
+    }
+
+    const isTickerOrShortQuery = text.trim().split(/\s+/).length <= 2 && 
+                                 !cleanQuery.includes("rules") && 
+                                 !cleanQuery.includes("policy") && 
+                                 !cleanQuery.includes("compare") &&
+                                 !cleanQuery.includes("why") &&
+                                 !cleanQuery.includes("how");
+
+    const tryYahooFinanceSearch = async () => {
+      try {
+        const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(text)}&quotesCount=5&newsCount=0`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        
+        const res = await fetch(proxyUrl);
+        const data = await res.json();
+        
+        const firstIndianStock = data.quotes?.find(item => 
+          item.symbol && 
+          (item.symbol.endsWith('.NS') || 
+           item.symbol.endsWith('.BO') || 
+           item.exchange === 'NSI' || 
+           item.exchange === 'BOM' || 
+           (item.exchDisp && (item.exchDisp.toLowerCase() === 'nse' || item.exchDisp.toLowerCase() === 'bse')))
+        );
+        return firstIndianStock || null;
+      } catch (err) {
+        console.error("Yahoo Search error:", err);
+        return null;
+      }
+    };
+
+    const callChatAPI = async (messageText) => {
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: messageText })
+        });
+        if (!res.ok) {
+          throw new Error(`API error: ${res.status}`);
+        }
+        const json = await res.json();
+        if (json.success) {
+          if (json.type === 'text') {
+            return {
+              sender: 'bot',
+              sources: ["Gemini AI Engine", "UperAI Research"],
+              text: json.text
+            };
+          } else if (json.type === 'json' && json.data) {
+            return {
+              sender: 'bot',
+              sources: json.data.sources || ["Gemini AI Engine", "UperAI Research"],
+              summary: json.data.summary || "",
+              metrics: json.data.metrics || null,
+              chartData: json.data.chartData || null,
+              chartTitle: json.data.chartTitle || "",
+              tableData: json.data.tableData || null,
+              sections: json.data.sections || null
+            };
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch from chat API:", err);
+      }
+      return null;
+    };
+
+    // Main Routing Flow
+    if (isTickerOrShortQuery) {
+      const stock = await tryYahooFinanceSearch();
+      if (stock) {
+        await fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
+      } else {
+        const botMsg = await callChatAPI(text);
+        if (botMsg) {
+          setMessages(prev => [...prev, botMsg]);
+          setIsTyping(false);
+        } else {
+          const fallbackMsg = generateSynthesizedDashboard(text);
+          setMessages(prev => [...prev, fallbackMsg]);
+          setIsTyping(false);
+        }
+      }
+    } else {
+      const botMsg = await callChatAPI(text);
+      if (botMsg) {
+        setMessages(prev => [...prev, botMsg]);
+        setIsTyping(false);
+      } else {
+        const stock = await tryYahooFinanceSearch();
+        if (stock) {
+          await fetchAndRenderStock(stock.symbol, stock.longname || stock.shortname || stock.symbol, stock);
+        } else {
+          const fallbackMsg = generateSynthesizedDashboard(text);
+          setMessages(prev => [...prev, fallbackMsg]);
+          setIsTyping(false);
+        }
+      }
+    }
+  };
+
+  // Handle initial query from landing page search
+  useEffect(() => {
+    if (initialQuery) {
+      handleSend(initialQuery);
+      if (onClearInitialQuery) {
+        onClearInitialQuery();
+      }
+    }
+  }, [initialQuery]);
+
+  const toggleSection = (messageIdx, sectionIdx) => {
+    const key = `${messageIdx}-${sectionIdx}`;
+    setExpandedSectionIdx(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  return (
+    <div className="chat-interface-grid" style={{ zIndex: 1 }}>
+      {/* Middle Workspace: Chat history & input centerpiece */}
+      <div className="main-content-column">
+        {messages.length > 0 && (
+          <div className="chat-header-bar" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 24px',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'rgba(17, 24, 39, 0.7)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            zIndex: 10
+          }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={12} style={{ color: 'var(--accent-color)' }} />
+              Equity Research Chat
+            </span>
+            <button 
+              onClick={() => {
+                if (window.confirm("Clear all messages and start a new session?")) {
+                  setMessages([]);
+                  localStorage.removeItem('uperai_chat_messages');
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                color: 'var(--color-error)',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontWeight: 500
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.borderColor = 'var(--color-error)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+              }}
+            >
+              <Trash2 size={12} />
+              <span>Reset Chat</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Message Space */}
+        <div className="chat-area-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {messages.length === 0 ? (
+            <div className="welcome-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', flex: 1, minHeight: '100%' }}>
+              
+              {/* Centerpiece Search Area */}
+              <div className="centerpiece-search-wrapper" style={{ width: '100%', maxWidth: '800px', margin: 'auto 0' }}>
+                <div className="centerpiece-input-bar">
+                  <Search size={20} style={{ color: 'var(--accent-color)', marginRight: '14px' }} />
+                  <input
+                    type="text"
+                    className="centerpiece-input"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Read Concall in seconds"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSend();
+                    }}
+                  />
+                  <span className="kbd-shortcut">↵ Enter</span>
+                  <button className="centerpiece-submit-btn" onClick={() => handleSend()}>
+                    <span>Translate</span>
+                    <ArrowUpRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          ) : (
+            messages.map((msg, msgIdx) => (
+              <div key={msgIdx} className={`chat-bubble ${msg.sender}`}>
+                {msg.sender === 'user' ? (
+                  <div>{msg.text}</div>
+                ) : (
+                  <div>
+                    {msg.sections ? (
+                      /* ONLY render the three sections in front */
+                      <div className="collapsible-sections" style={{ margin: 0 }}>
+                        {msg.sections.map((section, sIdx) => {
+                          const isExpanded = !!expandedSectionIdx[`${msgIdx}-${sIdx}`];
+                          return (
+                            <div className="collapsible-item" key={sIdx}>
+                              <div 
+                                className="collapsible-header" 
+                                onClick={() => toggleSection(msgIdx, sIdx)}
+                                style={{ borderBottom: isExpanded ? '1px solid var(--border-subtle)' : 'none' }}
+                              >
+                                <span>{section.title}</span>
+                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                              </div>
+                              {isExpanded && (
+                                <div className="collapsible-content" style={{ whiteSpace: 'pre-line' }}>
+                                  {section.content}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* Standard textual / conversational display */
+                      <div>
+                        {/* Unified bot header metadata */}
+                        <div className="bot-meta-info">
+                          <span className="bot-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Activity size={12} />
+                            UperAI Analysis
+                          </span>
+                          <span>Sources: {msg.sources?.join(', ')}</span>
+                        </div>
+
+                        {msg.text ? (
+                          <div className="insights-summary" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                            {msg.text}
+                          </div>
+                        ) : (
+                          <div className="insights-summary">
+                            {msg.summary}
+                          </div>
+                        )}
+
+                        {msg.metrics && (
+                          <div className="metrics-grid">
+                            {msg.metrics.map((metric, mIdx) => {
+                              const isNegative = metric.change && (metric.change.includes('-') || metric.change.toLowerCase().includes('down'));
+                              return (
+                                <div className="metric-card" key={mIdx}>
+                                  <span className="metric-label">{metric.label}</span>
+                                  <span className="metric-value">{metric.value}</span>
+                                  {metric.change && (
+                                    <span className={`metric-change ${isNegative ? 'negative' : ''}`}>
+                                      {metric.change}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {msg.chartData && (
+                          <InteractiveChart data={msg.chartData} title={msg.chartTitle} />
+                        )}
+
+                        {msg.tableData && (
+                          <div className="table-widget-container">
+                            <table className="widget-table">
+                              <thead>
+                                <tr>
+                                  <th>Company</th>
+                                  <th>P/E</th>
+                                  <th>PEG</th>
+                                  <th>ROE</th>
+                                  <th>EBITDA Margin</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {msg.tableData.map((row, rIdx) => (
+                                  <tr key={rIdx}>
+                                    <td className="stock-pill">{row.name} ({row.ticker})</td>
+                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.pe}</td>
+                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.peg}</td>
+                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.roe}</td>
+                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{row.ebitda}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="chat-bubble bot" style={{ display: 'inline-block', maxWidth: '100px' }}>
+              <div className="typing-indicator">
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+              </div>
+            </div>
+          )}
+
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Input panel dock (at bottom of column) */}
+        {messages.length > 0 && (
+          <footer className="input-dock" style={{ background: 'transparent', borderTop: '1px solid var(--border-subtle)' }}>
+            <div className="input-form-wrapper" style={{ position: 'relative' }}>
+              
+              {/* Autocomplete Dropdown List */}
+              {showDropdown && searchResults.length > 0 && (
+                <div className="autocomplete-dropdown">
+                  {searchResults.map((stock, idx) => (
+                    <div 
+                      key={idx} 
+                      className="autocomplete-item"
+                      onClick={() => handleSelectStock(stock)}
+                    >
+                      <div className="autocomplete-symbol-wrap">
+                        <span className="autocomplete-symbol">{stock.symbol}</span>
+                        <span className="autocomplete-exchange">{stock.exchDisp || (stock.symbol.endsWith('.NS') ? 'NSE' : 'BSE')}</span>
+                      </div>
+                      <span className="autocomplete-name">{stock.longname || stock.shortname}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="input-bar" style={{ background: 'var(--bg-card)' }}>
+                <Search size={18} style={{ color: 'var(--text-secondary)', marginRight: '12px' }} />
+                <input
+                  type="text"
+                  className="input-field"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Search NSE/BSE stocks or ask a question..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSend();
+                  }}
+                />
+                <div className="action-buttons">
+                  <button className="submit-btn" onClick={() => handleSend()}>
+                    <Send size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </footer>
+        )}
+      </div>
+
+      {/* Right Intelligence Sidebar removed as requested */}
+    </div>
+  );
+}
