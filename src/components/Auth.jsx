@@ -183,6 +183,36 @@ export default function Auth({ onLoginSuccess, onBack }) {
           {/* Real Google Login Native Button */}
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
             <div id="google-login-btn-container" style={{ width: '100%', minHeight: '40px' }}></div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', margin: '4px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
+              <span style={{ padding: '0 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }} />
+            </div>
+
+            <button
+              onClick={() => handleGoogleAccountSelect({
+                name: "Demo Investor",
+                email: "demo@uperai.in",
+                avatar: "https://api.dicebear.com/7.x/initials/svg?seed=Demo"
+              })}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                color: 'var(--text-secondary)',
+                fontSize: '0.88rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.06)'; e.target.style.borderColor = 'var(--text-muted)'; }}
+              onMouseLeave={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.03)'; e.target.style.borderColor = 'var(--border-subtle)'; }}
+            >
+              Sign in with Demo Account
+            </button>
           </div>
         </div>
 
