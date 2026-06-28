@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Activity, Search, ArrowRight, Sparkles, TrendingUp, Compass, 
+  Activity, Search, ArrowRight, ArrowUpRight, Sparkles, TrendingUp, Compass, 
   FileText, Database, Layers, Award, Zap, Terminal, Gauge, Cpu, 
   Menu, X, Check, Shield, BarChart3, HelpCircle, Users, BookOpen,
   RefreshCw, LogOut
